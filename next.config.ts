@@ -1,14 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'export',          // Required for static hosting
+  basePath: '/Jrs',         // Must match your repo name exactly
+  images: {
+    unoptimized: true       // Required for static images
+  }
 };
 
 export default nextConfig;
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export', // Enables static export
-  images: { unoptimized: true } // Required for static hosting
-}
-module.exports = nextConfig
