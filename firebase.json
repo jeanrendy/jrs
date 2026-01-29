@@ -1,6 +1,7 @@
 {
   "hosting": {
-    "public": "out",
+    "public": "out", // Crucial: Next.js static files live here
+    "cleanUrls": true, // Removes .html from your URLs
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -9,7 +10,7 @@
     "rewrites": [
       {
         "source": "**",
-        "destination": "/index.html"
+        "destination": "/index.html" // Handles client-side routing
       }
     ]
   }
