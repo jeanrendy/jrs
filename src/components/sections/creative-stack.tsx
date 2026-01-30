@@ -211,7 +211,7 @@ export function CreativeStack() {
                         className="flex items-center"
                     >
                         <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                            Great brands aren't built in silos, they are born at the intersection of strategy, art, and technology. With over a decade of experience, I offer a rare hybrid capability that bridges the gap between high-end visual storytelling and complex technical architecture. Whether I am directing a brand's visual identity or engineering its AI-powered infrastructure, my goal is singular: to create a solid, functional masterpiece that commands attention and delivers your message with precision.
+                            Great brands aren&apos;t built in silos, they are born at the intersection of strategy, art, and technology. With over a decade of experience, I offer a rare hybrid capability that bridges the gap between high-end visual storytelling and complex technical architecture. Whether I am directing a brand&apos;s visual identity or engineering its AI-powered infrastructure, my goal is singular: to create a solid, functional masterpiece that commands attention and delivers your message with precision.
                         </p>
                     </motion.div>
                 </div>

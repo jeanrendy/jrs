@@ -20,6 +20,7 @@ export const AnimatedThemeToggler = ({
     const buttonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

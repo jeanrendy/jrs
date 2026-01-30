@@ -9,9 +9,9 @@ function MetallicShape() {
     useFrame((state) => {
         const t = state.clock.getElapsedTime();
         if (meshRef.current) {
-            // @ts-ignore
+            // @ts-expect-error - rotation exists on Object3D
             meshRef.current.rotation.x = t * 0.2;
-            // @ts-ignore
+            // @ts-expect-error - rotation exists on Object3D
             meshRef.current.rotation.y = t * 0.3;
         }
     });

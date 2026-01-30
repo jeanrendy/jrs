@@ -12,7 +12,7 @@ export default function SiteLayout({
     return (
         <CursorProvider>
             <SmoothScroll>
-                <div className="relative z-10 bg-background rounded-b-[40px] md:rounded-b-[80px] shadow-2xl mb-[600px] md:mb-[700px] overflow-hidden">
+                <div className="relative z-10 bg-background rounded-b-[40px] md:rounded-b-[80px] shadow-2xl mb-0 md:mb-[700px] overflow-hidden">
                     <Navbar />
                     <main className="min-h-screen">
                         {children}

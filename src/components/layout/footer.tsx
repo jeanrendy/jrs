@@ -15,13 +15,14 @@ export function Footer() {
     const [form, setForm] = useState({ name: '', email: '', message: '' });
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
     return (
-        <footer id="footer" className="fixed bottom-0 left-0 w-full md:h-[800px] bg-black text-white -z-10 flex flex-col justify-end overflow-hidden font-sans">
+        <footer id="footer" className="relative md:fixed bottom-0 left-0 w-full min-h-[100dvh] md:min-h-0 md:h-[800px] bg-black text-white z-10 md:-z-10 flex flex-col justify-end overflow-hidden font-sans">
             {/* Content Container */}
-            <div className="container mx-auto px-6 h-full flex flex-col pt-48 md:pt-[200px] pb-20 relative z-10 gap-10 justify-start">
+            <div className="container mx-auto px-6 flex flex-col pt-24 md:pt-[200px] pb-10 md:pb-20 relative z-10 gap-10 justify-start bg-black md:bg-transparent">
 
                 {/* Main Section */}
                 <div className="flex flex-col md:flex-row justify-between w-full gap-12 lg:gap-24">
@@ -38,15 +39,15 @@ export function Footer() {
 
                             <a
                                 href="mailto:jeanrendy@gmail.com"
-                                className="text-4xl md:text-5xl lg:text-7xl font-bold flex items-center gap-4 hover:text-[#CCFF00] transition-colors tracking-tight group"
+                                className="text-[clamp(1.5rem,3.5vw,4rem)] font-bold flex items-center gap-4 hover:text-[#CCFF00] transition-colors tracking-tight group whitespace-nowrap"
                             >
                                 jeanrendy@gmail.com
-                                <ArrowUpRight className="w-8 h-8 md:w-12 md:h-12 group-hover:rotate-45 transition-transform duration-300" />
+                                <ArrowUpRight className="w-6 h-6 md:w-12 md:h-12 group-hover:rotate-45 transition-transform duration-300 flex-shrink-0" />
                             </a>
                         </div>
 
                         {/* Divider & Marquee */}
-                        <div className="w-full mt-auto hidden md:block">
+                        <div className="w-full mt-auto block">
                             <div className="w-full h-px bg-white/10 mb-8" />
                             <div className="relative w-full overflow-hidden">
                                 <div className="absolute top-0 left-0 w-32 h-full z-10 bg-gradient-to-r from-black to-transparent pointer-events-none" />

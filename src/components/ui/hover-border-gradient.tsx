@@ -16,11 +16,13 @@ export function HoverBorderGradient({
     ...props
 }: React.PropsWithChildren<
     {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         as?: any;
         containerClassName?: string;
         className?: string;
         duration?: number;
         clockwise?: boolean;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } & any
 >) {
     const [hovered, setHovered] = useState(false);

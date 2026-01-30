@@ -10,7 +10,7 @@ import { TextPressure } from "@/components/ui/text-pressure";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 
-export function FeaturesSection() {
+export function FeaturesSection({ content }: { content?: { title?: string; description?: string } }) {
     const { setIsHovered } = useCursor();
     const { resolvedTheme } = useTheme();
     const containerRef = useRef<HTMLElement>(null);
@@ -22,6 +22,7 @@ export function FeaturesSection() {
 
     useEffect(() => {
         if (isInView) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShouldLoad3D(true);
         }
     }, [isInView]);
@@ -39,14 +40,14 @@ export function FeaturesSection() {
             ref={containerRef}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#F4F2EA] dark:bg-[#030303] transition-colors duration-300"
+            className="relative h-[85vh] md:h-screen w-full flex items-center justify-center overflow-hidden bg-[#F4F2EA] dark:bg-[#030303] transition-colors duration-300"
         >
             <div className="absolute top-[5%] md:top-[8%] left-0 w-full z-30 flex flex-col items-center justify-center pointer-events-none px-4 text-center">
                 <h2 className="text-3xl md:text-5xl font-bold text-black dark:text-white mb-4 tracking-tighter font-['Whyte_Inktrap',_sans-serif]">
-                    My Digital Playground
+                    {content?.title || "My Digital Playground"}
                 </h2>
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-2xl font-light leading-relaxed">
-                    This is where curiosity meets craft. Whether I'm building with AI, sculpting in 3D, or refining a brand’s visual identity, these are the tools I play with to push the boundaries of what’s possible in design.
+                    {content?.description || "This is where curiosity meets craft. Whether I'm building with AI, sculpting in 3D, or refining a brand\u2019s visual identity, these are the tools I play with to push the boundaries of what\u2019s possible in design."}
                 </p>
             </div>
 
@@ -55,7 +56,7 @@ export function FeaturesSection() {
                 {/* pointer-events-auto allowed for interactivity (head follow) */}
                 <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
                     {/* Mobile: Much smaller scale, Desktop: Original size */}
-                    <div className="absolute left-1/2 top-[70%] md:top-[95%] -translate-x-1/2 -translate-y-1/2 w-[120%] h-[100%] md:w-[130%] md:h-[130%]">
+                    <div className="absolute left-1/2 top-[75%] md:top-[95%] -translate-x-1/2 -translate-y-1/2 w-[120%] h-[100%] md:w-[130%] md:h-[130%]">
                         {shouldLoad3D && (
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.8, y: 100, filter: "blur(10px)" }}
@@ -81,7 +82,7 @@ export function FeaturesSection() {
                 </div>
 
                 {/* Auto-scrolling Logos - Mobile Only */}
-                <div className="md:hidden absolute top-[25%] left-0 w-full z-20 py-8 overflow-hidden pointer-events-none">
+                <div className="md:hidden absolute top-[35%] left-0 w-full z-20 py-8 overflow-hidden pointer-events-none">
                     <p className="text-center text-xs text-gray-600 dark:text-gray-400 uppercase tracking-widest font-medium mb-6">My Toolkit</p>
                     <div className="flex w-full">
                         <motion.div
@@ -150,8 +151,10 @@ export function FeaturesSection() {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const features: any[] = [];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function FeatureCard({ feature, index }: { feature: any; index: number }) {
     return (
         <motion.div

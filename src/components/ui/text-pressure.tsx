@@ -117,7 +117,7 @@ function TextPressureItem({
     index: number;
     mouseX: MotionValue<number>;
     mouseY: MotionValue<number>;
-    parentRef: React.RefObject<HTMLSpanElement>;
+    parentRef: React.RefObject<HTMLSpanElement | null>;
     weight: boolean;
     width: boolean;
     italic: boolean;
@@ -128,6 +128,7 @@ function TextPressureItem({
     minFontSize: number;
 }) {
     const itemRef = useRef<HTMLSpanElement>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [styles, setStyles] = useState<any>({});
 
     useEffect(() => {

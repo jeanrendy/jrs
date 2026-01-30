@@ -15,10 +15,15 @@ export function HeroSection({ content }: { content?: HeroContent }) {
     const {
         role = "Creative Developer",
         name = "JEAN RENDY",
-        description = "Crafting immersive digital experiences with Code & 3D.",
+        description = "I’m Jean, your digital design sidekick. Got a crazy idea? Let’s bring it to life! I’m a full-stack designer, which means I can handle almost everything, whether it’s creating a fresh brand, designing a smooth website, or building something totally unique. No need to hire a bunch of people, <span class='font-semibold italic'>&quot;I’m here to do it all.&quot;</span>",
         ctaPrimary = "Latest Work",
         ctaSecondary = "About Me"
     } = content || {};
+
+    const formattedDescription = description.replace(
+        /(["“']?)\s*(I’m|I'm)\s+here\s+to\s+do\s+it\s+all\.?\s*(['”"]?)/i,
+        `<span class="font-semibold italic">&quot;I’m here to do it all.&quot;</span>`
+    );
 
     return (
         <section className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden">
@@ -53,14 +58,13 @@ export function HeroSection({ content }: { content?: HeroContent }) {
                     </motion.h1>
                 </div>
 
-                <motion.p
+                <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                     className="text-xl md:text-2xl text-[#d0d6e0] max-w-2xl font-normal leading-relaxed text-center"
-                >
-                    {description}
-                </motion.p>
+                    dangerouslySetInnerHTML={{ __html: formattedDescription }}
+                />
 
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}

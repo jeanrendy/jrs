@@ -1,10 +1,10 @@
 "use client";
 import { useEffect } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { useCursor } from "@/context/cursor-context";
 
 export function Cursor() {
-    const { isHovered } = useCursor();
+    const { isHovered, cursorType } = useCursor();
     const mouseX = useMotionValue(-100);
     const mouseY = useMotionValue(-100);
 
@@ -31,10 +31,49 @@ export function Cursor() {
                 translateY: "-50%",
             }}
             animate={{
-                scale: isHovered ? 0 : 1,
+                width: cursorType === 'small' ? 8 : 100,
+                height: cursorType === 'small' ? 8 : 100,
+                backgroundColor: (cursorType === 'detail' || cursorType === 'video') ? 'transparent' : 'white',
+                mixBlendMode: 'difference',
+                scale: (cursorType === 'detail' || cursorType === 'video' || cursorType === 'small') ? 1 : (isHovered ? 0 : 1),
             }}
             transition={{ duration: 0.3 }}
-            className="fixed top-0 left-0 w-16 h-16 rounded-full bg-white mix-blend-difference pointer-events-none z-[60] hidden md:block"
-        />
+            className="fixed top-0 left-0 rounded-full pointer-events-none z-[60] hidden md:flex items-center justify-center"
+        >
+            <AnimatePresence mode="wait">
+                {cursorType === 'detail' && (
+                    <motion.div
+                        key="detail"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        className="w-full h-full relative"
+                    >
+                        <img
+                            src="/assets/detailscursor.svg"
+                            alt="View"
+                            className="w-full h-full object-contain"
+                            style={{ filter: "brightness(0) invert(1)" }}
+                        />
+                    </motion.div>
+                )}
+                {cursorType === 'video' && (
+                    <motion.div
+                        key="video"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        className="w-full h-full relative"
+                    >
+                        <img
+                            src="/assets/infovideocursor.svg"
+                            alt="Watch"
+                            className="w-full h-full object-contain"
+                            style={{ filter: "brightness(0) invert(1)" }}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 }

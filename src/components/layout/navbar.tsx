@@ -103,7 +103,7 @@ export function Navbar() {
                     <div className="flex items-center gap-2">
                         <AnimatedThemeToggler />
                         <MagneticButton onClick={scrollToFooter}>
-                            Let's Talk
+                            Let&apos;s Talk
                         </MagneticButton>
                     </div>
                 </nav>
@@ -155,7 +155,7 @@ export function Navbar() {
                                     scrollToFooter();
                                 }}
                             >
-                                Let's Talk
+                                Let&apos;s Talk
                             </Button>
                         </nav>
                     </motion.div>

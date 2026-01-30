@@ -67,21 +67,25 @@ function FloatingLogo({
     const controls = useAnimation();
     const isDragging = useRef(false);
 
-    // Initial random position to scatter them at start
-    const initialX = useRef(Math.random() * (containerSize.width - 50));
-    const initialY = useRef(Math.random() * (containerSize.height - 50));
+    // Use refs for value storage, but initialize in effect to assume purity
+    const initialPos = useRef({ x: 0, y: 0 });
+    const isInitialized = useRef(false);
+
+    // Move wander to a ref to handle recursion/scope issues cleanly or just use useCallback carefully
+    // Since it calls itself, we can use a ref to hold the function or just rely on closure if carefully done.
+    // However, simplest here is to define it at component level with useCallback.
+
+    // We need a stable reference to call from onDragEnd
+    const wanderRef = useRef<() => void>(() => { });
 
     const wander = async () => {
         if (isDragging.current) return;
 
         // Pick a random target within the container
-        // Margin of 50px to keep inside
         const targetX = Math.random() * (containerSize.width - 50);
         const targetY = Math.random() * (containerSize.height - 50);
 
-        // Calculate distance to determine duration (constant speed)
-        // Or just random slow duration
-        const duration = 15 + Math.random() * 20; // 15-35s moves
+        const duration = 15 + Math.random() * 20;
 
         try {
             await controls.start({
@@ -95,24 +99,32 @@ function FloatingLogo({
             });
 
             // Loop if not interrupted
-            wander();
+            wanderRef.current();
         } catch (e) {
-            // Animation interrupted (e.g. by drag), ignore
+            // Animation interrupted
         }
     };
 
+    // Update ref so we can call it recursively and externally
     useEffect(() => {
-        // Start wandering on mount
-        // We set immediate x/y to initial to avoid jump
-        controls.set({ x: initialX.current, y: initialY.current, scale: 0, opacity: 0 });
+        wanderRef.current = wander;
+    });
 
-        // Appear anmiation
+    useEffect(() => {
+        if (!isInitialized.current) {
+            initialPos.current = {
+                x: Math.random() * (containerSize.width - 50),
+                y: Math.random() * (containerSize.height - 50)
+            };
+            isInitialized.current = true;
+        }
+
+        // Start wandering
+        controls.set({ x: initialPos.current.x, y: initialPos.current.y, scale: 0, opacity: 0 });
         controls.start({ opacity: 1, scale: 1, transition: { duration: 0.5 } }).then(() => {
-            wander();
+            wanderRef.current();
         });
-
-        // Cleanup not strictly needed as unmount stops animation
-    }, []);
+    }, [containerSize.width, containerSize.height, controls]); // Re-run if size changes? Maybe.
 
     return (
         <motion.div
@@ -128,7 +140,7 @@ function FloatingLogo({
             onDragEnd={() => {
                 isDragging.current = false;
                 // Resume wandering from new position
-                wander();
+                wanderRef.current();
             }}
             whileHover={{ scale: 1.2, zIndex: 60, cursor: "grab" }}
             whileDrag={{ scale: 1.2, zIndex: 100, cursor: "grabbing" }}

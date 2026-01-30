@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getCompanyLogos } from '@/lib/get-company-logos';
 
+export const dynamic = 'force-static';
+
+
 export async function GET() {
     try {
         const logos = getCompanyLogos();

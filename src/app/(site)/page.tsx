@@ -5,13 +5,23 @@ import { db } from "@/lib/firebase";
 import { Hero, CompanyLogo } from "@/components/sections/hero-v2";
 import { CreativeStack } from "@/components/sections/creative-stack";
 import { FeaturesSection } from "@/components/sections/features";
-import { HeroContent } from "@/components/sections/hero";
 import { PortfolioShowcase } from "@/components/sections/portfolio-showcase";
 import { VisualProductionShowcase } from "@/components/sections/visual-production";
 import { LatestPosts, BlogContent } from "@/components/sections/latest-posts";
 
 interface PageContent {
-  hero?: HeroContent;
+  hero?: {
+    availabilityText?: string;
+    titleLine1?: string;
+    titleLine2?: string;
+    titleLine3Part1?: string;
+    titleLine3Part2?: string;
+    description?: string;
+  };
+  digitalPlayground?: {
+    title?: string;
+    description?: string;
+  };
   blog?: BlogContent;
 }
 
@@ -54,21 +64,21 @@ export default function Home() {
   return (
     <main className="block min-h-screen">
       <div className="sticky top-0 z-0 snap-start">
-        <Hero companyLogos={companyLogos} />
+        <Hero companyLogos={companyLogos} content={content?.hero} />
       </div>
       <div className="relative z-20 bg-background">
         <div className="snap-start min-h-screen flex flex-col justify-center">
           <CreativeStack />
         </div>
-        <div className="snap-start min-h-screen flex flex-col justify-center">
+        <div id="work" className="snap-start min-h-screen flex flex-col justify-center">
           <PortfolioShowcase />
         </div>
         <div className="snap-start min-h-screen flex flex-col justify-center">
           <VisualProductionShowcase />
         </div>
 
-        <div className="snap-start min-h-screen flex flex-col justify-center">
-          <FeaturesSection />
+        <div className="snap-start min-h-[50vh] md:min-h-screen flex flex-col justify-center">
+          <FeaturesSection content={content?.digitalPlayground} />
         </div>
       </div>
     </main>

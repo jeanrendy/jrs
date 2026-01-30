@@ -7,6 +7,7 @@ import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Volume2, VolumeX, Maximize, Info, X, Play, Pause } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useCursor } from "@/context/cursor-context";
 
 interface MediaData {
     id: number | string;
@@ -24,39 +25,105 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
     if (!video) return null;
     return (
         <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-                onClick={onClose}
-            >
+            <div className="fixed inset-0 grid place-items-center z-[100] p-4">
                 <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    className="relative bg-neutral-900 border border-white/10 rounded-2xl p-6 max-w-lg w-full shadow-2xl overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm h-full w-full z-0"
+                    onClick={onClose}
+                />
+
+                {/* Ambient Glow for Modal */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
+                    <video
+                        src={video.src}
+                        className="w-[80vw] h-[80vh] object-cover blur-[100px] opacity-40 scale-110"
+                        muted loop playsInline autoPlay
+                    />
+                </div>
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="w-full max-w-[90vw] md:max-w-[800px] h-[85vh] md:h-fit md:max-h-[90vh] flex flex-col bg-[#111111] sm:rounded-3xl overflow-hidden shadow-2xl z-10 relative cursor-none border border-white/10"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <button
+                        className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full z-50 backdrop-blur-md transition-colors cursor-none"
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
                     >
-                        <X size={20} className="text-white" />
+                        <X size={20} />
                     </button>
-                    <h3 className="text-2xl font-bold text-white mb-2">Video Details</h3>
-                    <div className="space-y-4">
-                        <div>
-                            <p className="text-sm text-gray-400">File Name</p>
-                            <p className="text-white break-all">{video.alt || video.src.split('/').pop()}</p>
+
+                    {/* Top Media Area */}
+                    <div className="relative h-64 md:h-96 w-full flex-shrink-0 bg-black">
+                        <video
+                            src={video.src}
+                            className="w-full h-full object-cover"
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                        />
+                        <div className="absolute inset-0 bg-black/10" />
+                    </div>
+
+                    {/* Bottom Content Area */}
+                    <div className="flex flex-col p-6 md:p-8 overflow-y-auto bg-[#111111] text-white h-full">
+                        {/* Header */}
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
+                            <div>
+                                <p className="text-sm font-medium text-gray-400 mb-1">2023</p>
+                                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">
+                                    {video.alt || "Visual Project"}
+                                </h3>
+                                <p className="text-lg text-gray-400 italic">
+                                    Visual Production & Motion
+                                </p>
+                            </div>
+                            {/* Buttons */}
+                            <div className="flex gap-3">
+                                <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium cursor-none">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                    Case Study
+                                </button>
+                                <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#CCFF00] text-black hover:bg-[#b3e600] transition-colors text-sm font-medium cursor-none">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M2 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                    View Live
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-gray-400">Source</p>
-                            <p className="text-xs text-white/70 font-mono break-all bg-black/30 p-2 rounded">{video.src}</p>
+
+                        {/* Content */}
+                        <div className="space-y-6">
+                            <div>
+                                <h4 className="text-xl font-bold text-white mb-3">Project Insight</h4>
+                                <p className="text-gray-400 leading-relaxed">
+                                    A cinematic exploration of visual storytelling. This project highlights the intersection of motion, sound, and brand narrative.
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap gap-3 mt-8">
+                                {["Motion", "Editing", "Visuals", "Production"].map((tag) => (
+                                    <span key={tag} className="px-5 py-2 rounded-full bg-white/5 text-gray-300 text-sm border border-white/10">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </AnimatePresence>
     );
 };
@@ -111,19 +178,38 @@ const StickyCard002 = ({
 }: VisualProductionProps) => {
     const container = useRef(null);
     const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const { setCursorType } = useCursor();
 
     // Independent state for each card
     const [cardStates, setCardStates] = useState<CardState[]>([]);
 
     const activeIndexRef = useRef(0);
+    const [activeIndex, setActiveIndex] = useState(0);
     const [selectedVideo, setSelectedVideo] = useState<MediaData | null>(null);
+    const [fullscreenVideo, setFullscreenVideo] = useState<MediaData | null>(null);
 
     // Initialize states when items load
     useEffect(() => {
         if (mediaItems.length > 0 && cardStates.length !== mediaItems.length) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCardStates(new Array(mediaItems.length).fill({ muted: true, volume: 1, playing: false }));
         }
     }, [mediaItems, cardStates.length]);
+
+    // Pause main videos when modal or fullscreen is open
+    useEffect(() => {
+        const cardElements = cardRefs.current?.filter(el => el !== null);
+        if (!cardElements) return;
+
+        if (selectedVideo || fullscreenVideo) {
+            // Pause all
+            cardElements.forEach(el => el?.querySelectorAll('video').forEach(v => v.pause()));
+        } else {
+            // Resume active
+            const activeEl = cardElements[activeIndex];
+            activeEl?.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
+        }
+    }, [selectedVideo, fullscreenVideo, activeIndex]);
 
     useGSAP(
         () => {
@@ -160,28 +246,21 @@ const StickyCard002 = ({
                     pinSpacing: true,
                     onLeave: () => {
                         cardElements.forEach(el => {
-                            const v = el?.querySelector('video');
-                            if (v) {
-                                v.pause();
-                                // Sync state? play/pause listeners handle it.
-                            }
+                            el?.querySelectorAll('video').forEach(v => v.pause());
                         });
                     },
                     onLeaveBack: () => {
                         cardElements.forEach(el => {
-                            const v = el?.querySelector('video');
-                            if (v) v.pause();
+                            el?.querySelectorAll('video').forEach(v => v.pause());
                         });
                     },
                     onEnter: () => {
                         const idx = activeIndexRef.current;
-                        const v = cardElements[idx]?.querySelector('video');
-                        if (v) v.play().catch(() => { });
+                        cardElements[idx]?.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
                     },
                     onEnterBack: () => {
                         const idx = activeIndexRef.current;
-                        const v = cardElements[idx]?.querySelector('video');
-                        if (v) v.play().catch(() => { });
+                        cardElements[idx]?.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
                     },
                     onUpdate: (self) => {
                         const progress = self.progress;
@@ -190,13 +269,14 @@ const StickyCard002 = ({
 
                         if (newIndex !== activeIndexRef.current && newIndex >= 0 && newIndex < totalCards) {
                             activeIndexRef.current = newIndex;
+                            setActiveIndex(newIndex);
                             cardElements.forEach((el, idx) => {
-                                const video = el.querySelector('video');
-                                if (video) {
+                                const videos = el.querySelectorAll('video');
+                                if (videos.length > 0) {
                                     if (idx === newIndex) {
-                                        video.play().catch(() => { });
+                                        videos.forEach(v => v.play().catch(() => { }));
                                     } else {
-                                        video.pause();
+                                        videos.forEach(v => v.pause());
                                     }
                                 }
                             });
@@ -271,11 +351,11 @@ const StickyCard002 = ({
     const togglePlay = (e: React.MouseEvent, index: number) => {
         e.stopPropagation();
         const card = cardRefs.current[index];
-        const video = card?.querySelector('video');
-        if (video) {
+        const videos = card?.querySelectorAll('video');
+        videos?.forEach(video => {
             if (video.paused) video.play().catch(() => { });
             else video.pause();
-        }
+        });
     };
 
     const updateCardState = (index: number, newState: Partial<CardState>) => {
@@ -288,11 +368,11 @@ const StickyCard002 = ({
         // but 'playing' is read-only on DOM (use play()/pause() methods). 
         // Listeners sync state.
         const card = cardRefs.current[index];
-        const video = card?.querySelector('video');
-        if (video) {
+        const videos = card?.querySelectorAll('video');
+        videos?.forEach(video => {
             if (newState.muted !== undefined) video.muted = newState.muted;
             if (newState.volume !== undefined) video.volume = newState.volume;
-        }
+        });
     };
 
     const handleGlobalToggle = () => {
@@ -303,28 +383,32 @@ const StickyCard002 = ({
         setCardStates(prev => prev.map(s => ({ ...s, muted: targetMuted })));
 
         cardRefs.current.forEach(card => {
-            const video = card?.querySelector('video');
-            if (video) {
+            card?.querySelectorAll('video').forEach(video => {
                 video.muted = targetMuted;
-            }
+            });
         });
     };
 
     // Helper to get active mute state for the global button label
-    const activeMuted = cardStates[activeIndexRef.current]?.muted ?? true;
+    const activeMuted = cardStates[activeIndex]?.muted ?? true;
 
     return (
         <>
-            <div className={cn("relative h-full w-full", className)} ref={container}>
+            <div
+                className={cn("relative h-full w-full", className)}
+                ref={container}
+                onMouseEnter={() => setCursorType('small')}
+                onMouseLeave={() => setCursorType('default')}
+            >
                 <div className="sticky-cards-visual relative flex h-[100dvh] w-full items-center justify-center overflow-hidden p-3 lg:p-8">
 
 
                     {/* Main Stack Container - fixed height to viewport */}
-                    <div className="relative w-full h-full max-w-7xl flex items-center justify-center">
+                    <div className="relative w-full h-full max-w-7xl flex items-center justify-center pt-24 md:pt-0">
 
-                        <div className="absolute top-8 left-6 z-40 flex flex-col items-center md:items-start text-center md:text-left">
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-white">Visual Productions</h2>
-                            <p className="text-lg text-gray-400 max-w-2xl">
+                        <div className="absolute top-24 md:top-8 left-6 z-40 flex flex-col items-center md:items-start text-center md:text-left">
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-black dark:text-white">Visual Productions</h2>
+                            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
                                 Motion graphics, video editing, and visual storytelling.
                             </p>
                         </div>
@@ -335,75 +419,87 @@ const StickyCard002 = ({
                             return (
                                 <div
                                     key={item.id}
-                                    className="absolute inset-0 flex items-center justify-center will-change-transform"
+                                    className="absolute inset-0 flex items-center justify-center will-change-transform pt-24 md:pt-0"
                                     ref={(el) => { cardRefs.current[i] = el; }}
                                 >
-                                    {/* THE VISUAL CARD - Adapts to content size */}
-                                    <div className="visual-card relative max-h-[85dvh] max-w-full shadow-[0_35px_60px_-15px_rgba(0,0,0,0.8)] rounded-3xl overflow-hidden group bg-neutral-900 border border-white/10 mx-4">
+                                    <div className="relative">
+                                        {/* THE VISUAL CARD - Adapts to content size */}
+                                        <div
+                                            className="visual-card relative max-h-[60dvh] md:max-h-[85dvh] max-w-full shadow-[0_35px_60px_-15px_rgba(0,0,0,0.8)] rounded-3xl overflow-hidden group bg-neutral-900 mx-4 z-10"
+                                            onMouseEnter={() => setCursorType('video')}
+                                            onMouseLeave={() => setCursorType('small')}
+                                        >
 
-                                        {item.type === "video" ? (
-                                            <video
-                                                src={item.src}
-                                                className="max-h-[85dvh] w-auto max-w-full object-contain cursor-pointer"
-                                                muted={state.muted}
-                                                loop
-                                                playsInline
-                                                suppressHydrationWarning
-                                                onPlay={() => updateCardState(i, { playing: true })}
-                                                onPause={() => updateCardState(i, { playing: false })}
-                                                onClick={(e) => togglePlay(e, i)}
-                                            />
-                                        ) : (
-                                            <img
-                                                src={item.src}
-                                                alt={item.alt || ""}
-                                                className="max-h-[85dvh] w-auto max-w-full object-contain"
-                                            />
-                                        )}
-
-                                        {/* Controls Overlay */}
-                                        <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                            {/* Left Controls: Info - DISABLED for now */}
-                                            {/* 
-                                            <div className="flex gap-2 pointer-events-auto">
-                                                <button
+                                            {item.type === "video" ? (
+                                                <video
+                                                    src={item.src}
+                                                    className="max-h-[60dvh] md:max-h-[85dvh] w-auto max-w-full object-contain cursor-pointer"
+                                                    muted={state.muted}
+                                                    loop
+                                                    playsInline
+                                                    suppressHydrationWarning
+                                                    onPlay={() => updateCardState(i, { playing: true })}
+                                                    onPause={() => updateCardState(i, { playing: false })}
                                                     onClick={(e) => { e.stopPropagation(); setSelectedVideo(item); }}
-                                                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
-                                                    title="Info"
-                                                >
-                                                    <Info size={18} />
-                                                </button>
-                                            </div> 
-                                            */}
+                                                />
+                                            ) : (
+                                                <img
+                                                    src={item.src}
+                                                    alt={item.alt || ""}
+                                                    className="max-h-[60dvh] md:max-h-[85dvh] w-auto max-w-full object-contain"
+                                                />
+                                            )}
 
-                                            {/* Right Controls: Play/Pause, Volume, Fullscreen */}
-                                            <div className="flex items-center gap-2 pointer-events-auto">
-                                                {item.type === 'video' && (
-                                                    <>
-                                                        <button
-                                                            onClick={(e) => togglePlay(e, i)}
-                                                            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
-                                                            title={state.playing ? "Pause" : "Play"}
-                                                        >
-                                                            {state.playing ? <Pause size={18} /> : <Play size={18} />}
-                                                        </button>
+                                            {/* Controls Overlay */}
+                                            <div
+                                                className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                                                onMouseEnter={(e) => { e.stopPropagation(); setCursorType('small'); }}
+                                                onMouseLeave={() => setCursorType('video')}
+                                            >
+                                                {/* Right Controls: Play/Pause, Volume, Fullscreen */}
+                                                <div className="flex items-center gap-2 pointer-events-auto">
+                                                    {item.type === 'video' && (
+                                                        <>
+                                                            <button
+                                                                onClick={(e) => togglePlay(e, i)}
+                                                                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
+                                                                title={state.playing ? "Pause" : "Play"}
+                                                            >
+                                                                {state.playing ? <Pause size={18} /> : <Play size={18} />}
+                                                            </button>
 
-                                                        <VolumeControl
-                                                            isMuted={state.muted}
-                                                            volume={state.volume}
-                                                            onToggleMute={() => updateCardState(i, { muted: !state.muted })}
-                                                            onVolumeChange={(val) => updateCardState(i, { volume: val, muted: val === 0 })}
-                                                        />
-                                                        <button
-                                                            onClick={(e) => toggleFullscreen(e, i)}
-                                                            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
-                                                            title="Fullscreen"
-                                                        >
-                                                            <Maximize size={18} />
-                                                        </button>
-                                                    </>
-                                                )}
+                                                            <VolumeControl
+                                                                isMuted={state.muted}
+                                                                volume={state.volume}
+                                                                onToggleMute={() => updateCardState(i, { muted: !state.muted })}
+                                                                onVolumeChange={(val) => updateCardState(i, { volume: val, muted: val === 0 })}
+                                                            />
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); setFullscreenVideo(item); }}
+                                                                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
+                                                                title="Fullscreen"
+                                                            >
+                                                                <Maximize size={18} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
+                                        </div>
+
+                                        {/* AMBIENT GLOW BACKDROP */}
+                                        <div className={cn("absolute inset-0 z-[-1] blur-[40px] scale-[1.02] pointer-events-none transition-all duration-700 mx-4", i === activeIndex ? "opacity-60" : "opacity-0")}>
+                                            {item.type === 'video' ? (
+                                                <video
+                                                    src={item.src}
+                                                    className="w-full h-full object-cover rounded-3xl"
+                                                    muted
+                                                    loop
+                                                    playsInline
+                                                />
+                                            ) : (
+                                                <img src={item.src} className="w-full h-full object-cover rounded-3xl" alt="" />
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -413,18 +509,58 @@ const StickyCard002 = ({
                         {/* Global Floating Audio Toggle */}
                         <button
                             onClick={(e) => { e.stopPropagation(); handleGlobalToggle(); }}
-                            className="absolute top-8 right-6 z-[60] p-4 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white hover:bg-black/70 transition-colors shadow-2xl cursor-pointer pointer-events-auto"
+                            className="absolute bottom-24 md:bottom-auto top-auto md:top-8 right-6 z-[60] p-4 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white hover:bg-black/70 transition-colors shadow-2xl cursor-pointer pointer-events-auto"
                             aria-label="Toggle All Videos Audio"
                         >
                             {activeMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
                         </button>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {selectedVideo && (
                 <VideoDetailsModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
             )}
+
+            {/* 4. Render Simple Fullscreen Overlay */}
+            <AnimatePresence>
+                {fullscreenVideo && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl" onClick={() => setFullscreenVideo(null)}>
+                        {/* Ambient Glow */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
+                            <video
+                                src={fullscreenVideo.src}
+                                className="w-[100vw] h-[100vh] object-cover blur-[150px] opacity-40 scale-125"
+                                muted loop playsInline autoPlay
+                            />
+                        </div>
+
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="relative z-10 w-full max-w-[90vw] aspect-video max-h-[90vh] rounded-xl overflow-hidden shadow-2xl bg-black"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <video
+                                src={fullscreenVideo.src}
+                                className="w-full h-full object-contain"
+                                autoPlay
+                                controls
+                                controlsList="nodownload"
+                                onContextMenu={(e) => e.preventDefault()}
+                            />
+                            <button
+                                className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full z-50 backdrop-blur-md transition-colors"
+                                onClick={(e) => { e.stopPropagation(); setFullscreenVideo(null); }}
+                            >
+                                <X size={24} />
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </>
     );
 };
@@ -435,6 +571,33 @@ export const VisualProductionShowcase = () => {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
+                // Try fetching from Firestore first
+                let firestoreVideos: MediaData[] = [];
+                // Dynamic import
+                const { db } = await import("@/lib/firebase");
+                const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
+
+                if (db) {
+                    const q = query(collection(db, "visual_productions"), orderBy("createdAt", "desc"));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        firestoreVideos = querySnapshot.docs.map(doc => {
+                            const data = doc.data();
+                            return {
+                                id: doc.id,
+                                src: data.src,
+                                type: data.type as "video" | "image",
+                                alt: data.code || data.alt // Map firestore code to alt for display
+                            };
+                        });
+                    }
+                }
+
+                if (firestoreVideos.length > 0) {
+                    setVideos(firestoreVideos);
+                    return;
+                }
+
                 const response = await fetch('/api/visual-production-videos');
                 const data = await response.json();
                 if (Array.isArray(data)) {

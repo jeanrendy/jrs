@@ -13,7 +13,20 @@ export interface CompanyLogo {
     src: string;
 }
 
-export function Hero({ companyLogos = [] }: { companyLogos?: CompanyLogo[] }) {
+export interface HeroProps {
+    companyLogos?: CompanyLogo[];
+    content?: {
+        availabilityText?: string;
+        titleLine1?: string;
+        titleLine2?: string;
+        titleLine3Part1?: string;
+        titleLine3Part2?: string;
+        description?: string;
+    };
+    onFieldClick?: (field: string) => void;
+}
+
+export function Hero({ companyLogos = [], content, onFieldClick }: HeroProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const { setIsHovered } = useCursor();
     const lenis = useLenis();
@@ -92,7 +105,12 @@ export function Hero({ companyLogos = [] }: { companyLogos?: CompanyLogo[] }) {
                         className="inline-flex items-center gap-2 bg-gray-100/80 dark:bg-white/10 backdrop-blur-sm border border-gray-300/50 dark:border-white/20 rounded-full px-4 py-2 mb-6 w-fit"
                     >
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Limited Engagement | Only 1 Slot Remaining</span>
+                        <span
+                            onClick={(e) => { e.stopPropagation(); onFieldClick?.("hero.availabilityText"); }}
+                            className={`text-sm font-medium text-gray-900 dark:text-white ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-1 rounded transition-all" : ""}`}
+                        >
+                            {content?.availabilityText || "Limited Availability"}
+                        </span>
                     </motion.div>
 
                     <motion.div
@@ -115,11 +133,32 @@ export function Hero({ companyLogos = [] }: { companyLogos?: CompanyLogo[] }) {
                                 hidden: { opacity: 0, y: 30, filter: "blur(10px)" },
                                 visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.8, ease: "easeOut" } }
                             }}
-                            className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-left md:text-center md:mx-auto"
+                            className="text-4xl md:text-6xl lg:text-7xl tracking-tight leading-[1.1] text-left md:text-center md:mx-auto"
                         >
-                            Bridging <span className="font-serif italic font-medium">The Gap</span> Between <br className="hidden md:block" />
-                            <span className="font-serif italic font-medium">Aesthetic Vision</span> And <br className="hidden md:block" />
-                            <span className="font-serif italic font-medium">Functional Execution.</span>
+                            <span
+                                onClick={(e) => { e.stopPropagation(); onFieldClick?.("hero.titleLine1"); }}
+                                className={`block text-[20px] font-normal tracking-normal mb-4 opacity-90 ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-1 rounded transition-all" : ""}`}
+                            >
+                                {content?.titleLine1 || "Hey There!"}
+                            </span>
+                            <span
+                                onClick={(e) => { e.stopPropagation(); onFieldClick?.("hero.titleLine2"); }}
+                                className={`font-bold ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-1 rounded transition-all" : ""}`}
+                            >
+                                {content?.titleLine2 || "Let’s Make"}
+                            </span> <br />
+                            <span
+                                onClick={(e) => { e.stopPropagation(); onFieldClick?.("hero.titleLine3Part1"); }}
+                                className={`font-serif italic font-normal ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-1 rounded transition-all" : ""}`}
+                            >
+                                {content?.titleLine3Part1 || "Something"}
+                            </span>{" "}
+                            <span
+                                onClick={(e) => { e.stopPropagation(); onFieldClick?.("hero.titleLine3Part2"); }}
+                                className={`font-bold italic ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-1 rounded transition-all" : ""}`}
+                            >
+                                {content?.titleLine3Part2 || "Awesome"}
+                            </span>
                         </motion.h1>
 
                         <motion.p
@@ -127,9 +166,14 @@ export function Hero({ companyLogos = [] }: { companyLogos?: CompanyLogo[] }) {
                                 hidden: { opacity: 0, y: 20 },
                                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
                             }}
-                            className="text-base md:text-lg max-w-2xl md:mx-auto leading-relaxed"
+                            className={`text-base md:text-lg max-w-3xl md:mx-auto leading-relaxed ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-2 rounded transition-all" : ""}`}
+                            onClick={(e) => { e.stopPropagation(); onFieldClick?.("hero.description"); }}
                         >
-                            Hybrid Designer & Creative Director specializing in UI/UX, branding, and videography, enhanced by a technical foundation in software development and prompt engineering.
+                            {content?.description ? (
+                                <span dangerouslySetInnerHTML={{ __html: content.description }} />
+                            ) : (
+                                <>I’m Jean, your digital design sidekick. Got a crazy idea? Let’s bring it to life! I’m a full-stack designer, which means I can handle almost everything, whether it’s creating a fresh brand, designing a smooth website, or building something totally unique. No need to hire a bunch of people, <span className="font-semibold italic">&quot;I’m here to do it all.&quot;</span></>
+                            )}
                         </motion.p>
                     </motion.div>
 
@@ -145,7 +189,12 @@ export function Hero({ companyLogos = [] }: { companyLogos?: CompanyLogo[] }) {
                     >
                         {/* Buttons kept for functionality, assuming style might need update later if requested */}
                         <Magnetic onHoverChange={setIsHovered}>
-                            <Button size="lg" variant="outline" className="rounded-full h-12 px-8 text-base hover:bg-secondary">
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                className="rounded-full h-12 px-8 text-base hover:bg-secondary"
+                                onClick={() => lenis?.scrollTo('#work', { duration: 1.5 })}
+                            >
                                 View Selected Work
                             </Button>
                         </Magnetic>
@@ -155,7 +204,7 @@ export function Hero({ companyLogos = [] }: { companyLogos?: CompanyLogo[] }) {
                                 className="rounded-full h-12 px-8 text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow"
                                 onClick={() => lenis?.scrollTo(document.body.scrollHeight, { duration: 3 })}
                             >
-                                Let's Talk
+                                Let&apos;s Talk
                             </Button>
                         </Magnetic>
                     </motion.div>

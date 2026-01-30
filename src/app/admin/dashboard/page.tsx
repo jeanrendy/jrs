@@ -1,218 +1,145 @@
 "use client";
-import { useEffect, useState } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Eye, MousePointerClick, TrendingUp } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface PageContent {
-    hero: {
-        role: string;
-        name: string;
-        description: string;
-        ctaPrimary: string;
-        ctaSecondary: string;
-    };
-    portfolio: {
-        title: string;
-        description: string;
-        cta?: string; // Added optional property if needed in future
-    };
-    blog: {
-        title: string;
-        description: string;
-    };
-    contact: {
-        title: string;
-        description: string;
-        email: string;
-        phone: string;
-    };
-}
-
-const defaultContent: PageContent = {
-    hero: {
-        role: "Creative Developer",
-        name: "JEAN RENDY",
-        description: "Crafting immersive digital experiences with Code & 3D.",
-        ctaPrimary: "Latest Work",
-        ctaSecondary: "About Me"
-    },
-    portfolio: {
-        title: "Selected Work.",
-        description: "A collection of projects where design meets code. Focusing on user experience and performance."
-    },
-    blog: {
-        title: "Recent Writing.",
-        description: "Thoughts on design, creative coding, and the future of web."
-    },
-    contact: {
-        title: "Let's Connect.",
-        description: "Have a project in mind? Looking for a partner to build your next big thing? Reach out.",
-        email: "jeanrendy@example.com",
-        phone: "+1 (555) 123-4567"
-    }
-};
+const data = [
+    { name: 'Mon', visits: 4000 },
+    { name: 'Tue', visits: 3000 },
+    { name: 'Wed', visits: 2000 },
+    { name: 'Thu', visits: 2780 },
+    { name: 'Fri', visits: 1890 },
+    { name: 'Sat', visits: 2390 },
+    { name: 'Sun', visits: 3490 },
+];
 
 export default function AdminDashboard() {
-    const [content, setContent] = useState<PageContent>(defaultContent);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-
-    useEffect(() => {
-        const loadContent = async () => {
-            if (!db) {
-                setLoading(false);
-                return;
-            }
-            try {
-                const docRef = doc(db, "pages", "home");
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setContent(docSnap.data() as PageContent);
-                } else {
-                    // Initialize with default if empty
-                    await setDoc(docRef, defaultContent);
-                }
-            } catch (error) {
-                console.error("Error loading content:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadContent();
-    }, []);
-
-    const handleChange = (section: keyof PageContent, field: string, value: string) => {
-        setContent(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: value
-            }
-        }));
-    };
-
-    const handleSave = async () => {
-        if (!db) {
-            alert("Cannot save: Firebase is not configured.");
-            return;
-        }
-        setSaving(true);
-        try {
-            await setDoc(doc(db, "pages", "home"), content);
-            alert("Content saved successfully!");
-        } catch (error) {
-            console.error("Error saving content:", error);
-            alert("Failed to save content.");
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    if (loading) return <div className="p-8">Loading CMS...</div>;
-
     return (
-        <div className="flex flex-col gap-8 w-full text-gray-900">
-            <div className="flex items-center justify-between py-4 border-b border-gray-200 bg-gray-50/50 backdrop-blur-sm sticky top-0 z-10">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Content Management</h1>
-                <Button onClick={handleSave} disabled={saving} className="bg-black text-white hover:bg-gray-800">
-                    {saving ? "Saving..." : "Save Changes"}
-                </Button>
+        <div className="p-8 space-y-8 bg-gray-50 min-h-screen">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+                <p className="text-gray-500">Overview of your website performance.</p>
             </div>
 
-            <div className="space-y-8 pb-32">
-                {/* Hero Section */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                    <CardHeader className="border-b border-gray-100">
-                        <CardTitle className="text-xl font-semibold text-gray-900">Hero Section</CardTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                        <span className="text-muted-foreground">$</span>
                     </CardHeader>
-                    <CardContent className="space-y-4 pt-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Role (Small Tag)</label>
-                                <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.hero.role} onChange={(e) => handleChange("hero", "role", e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Name (Big Title)</label>
-                                <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.hero.name} onChange={(e) => handleChange("hero", "name", e.target.value)} />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Description</label>
-                            <Textarea className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.hero.description} onChange={(e) => handleChange("hero", "description", e.target.value)} />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Primary CTA</label>
-                                <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.hero.ctaPrimary} onChange={(e) => handleChange("hero", "ctaPrimary", e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Secondary CTA</label>
-                                <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.hero.ctaSecondary} onChange={(e) => handleChange("hero", "ctaSecondary", e.target.value)} />
-                            </div>
+                    <CardContent>
+                        <div className="text-2xl font-bold">$0.00</div>
+                        <p className="text-xs text-muted-foreground">+0% from last month</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">+12,234</div>
+                        <p className="text-xs text-muted-foreground">+19% from last month</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Page Views</CardTitle>
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">+573,290</div>
+                        <p className="text-xs text-muted-foreground">+201 since last hour</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Active Now</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">+573</div>
+                        <p className="text-xs text-muted-foreground">+201 since last hour</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card className="col-span-4">
+                <CardHeader>
+                    <CardTitle>Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    <div className="h-[350px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={data}>
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="#888888"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <YAxis
+                                    stroke="#888888"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(value) => `${value}`}
+                                />
+                                <Tooltip
+                                    contentStyle={{ background: '#fff', border: '1px solid #ccc', borderRadius: '8px' }}
+                                    itemStyle={{ color: '#000' }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="visits"
+                                    stroke="#000000"
+                                    strokeWidth={2}
+                                    dot={false}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Recent Activity</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="flex items-center">
+                                    <div className="ml-4 space-y-1">
+                                        <p className="text-sm font-medium leading-none">New visitor from US</p>
+                                        <p className="text-sm text-muted-foreground">2 minutes ago</p>
+                                    </div>
+                                    <div className="ml-auto font-medium">Running Chrome</div>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
-
-                {/* Portfolio Section */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                    <CardHeader className="border-b border-gray-100">
-                        <CardTitle className="text-xl font-semibold text-gray-900">Portfolio Section</CardTitle>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Top Referrers</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4 pt-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Section Title</label>
-                            <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.portfolio.title} onChange={(e) => handleChange("portfolio", "title", e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Description</label>
-                            <Textarea className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.portfolio.description} onChange={(e) => handleChange("portfolio", "description", e.target.value)} />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Blog Section */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                    <CardHeader className="border-b border-gray-100">
-                        <CardTitle className="text-xl font-semibold text-gray-900">Blog Section</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4 pt-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Section Title</label>
-                            <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.blog.title} onChange={(e) => handleChange("blog", "title", e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Description</label>
-                            <Textarea className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.blog.description} onChange={(e) => handleChange("blog", "description", e.target.value)} />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Contact Section */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                    <CardHeader className="border-b border-gray-100">
-                        <CardTitle className="text-xl font-semibold text-gray-900">Contact Section</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4 pt-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Section Title</label>
-                            <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.contact.title} onChange={(e) => handleChange("contact", "title", e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Description</label>
-                            <Textarea className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.contact.description} onChange={(e) => handleChange("contact", "description", e.target.value)} />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Email</label>
-                                <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.contact.email} onChange={(e) => handleChange("contact", "email", e.target.value)} />
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500">Google</span>
+                                <span className="font-bold">45%</span>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Phone</label>
-                                <Input className="bg-white border-gray-300 text-gray-900 focus-visible:ring-gray-400" value={content.contact.phone} onChange={(e) => handleChange("contact", "phone", e.target.value)} />
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500">Twitter / X</span>
+                                <span className="font-bold">25%</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500">Direct</span>
+                                <span className="font-bold">20%</span>
                             </div>
                         </div>
                     </CardContent>

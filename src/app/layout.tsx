@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "JeanRendy | Portfolio",
   description: "3D Creative Developer & Designer",
+  icons: {
+    icon: '/assets/jrslogowhite.svg',
+  },
 };
 
 export default function RootLayout({
@@ -24,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark snap-y snap-mandatory scroll-smooth" suppressHydrationWarning>
+    <html lang="en" className="dark snap-y snap-mandatory scroll-smooth no-scrollbar" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground overflow-x-hidden`}
       >
