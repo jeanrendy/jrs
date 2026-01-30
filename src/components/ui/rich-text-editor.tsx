@@ -18,7 +18,7 @@ export default function RichTextEditor({ value, onChange, className }: RichTextE
 
     return (
         <div className={className}>
-            {/* @ts-expect-error - React Quill types might be missing */}
+
             <ReactQuill
                 theme="snow"
                 value={value}
