@@ -7,6 +7,7 @@ import { CreativeStack } from "@/components/sections/creative-stack";
 import { FeaturesSection } from "@/components/sections/features";
 import { PortfolioShowcase } from "@/components/sections/portfolio-showcase";
 import { VisualProductionShowcase } from "@/components/sections/visual-production";
+import { AboutExperience } from "@/components/sections/about-experience";
 import { LatestPosts, BlogContent } from "@/components/sections/latest-posts";
 
 interface PageContent {
@@ -75,6 +76,10 @@ export default function Home() {
         </div>
         <div className="snap-start min-h-screen flex flex-col justify-center">
           <VisualProductionShowcase />
+        </div>
+
+        <div id="about" className="snap-start min-h-screen flex flex-col justify-center">
+          <AboutExperience />
         </div>
 
         <div className="snap-start min-h-[50vh] md:min-h-screen flex flex-col justify-center">

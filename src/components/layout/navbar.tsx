@@ -15,7 +15,7 @@ import { useRef } from "react";
 const navItems = [
     { name: "SERVICES", href: "/#services" },
     { name: "WORK", href: "/#work" },
-    { name: "ABOUT", href: "/about" },
+    { name: "ABOUT", href: "/#about" },
 ];
 
 export function Navbar() {
