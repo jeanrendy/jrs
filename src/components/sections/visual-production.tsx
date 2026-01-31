@@ -14,6 +14,16 @@ interface MediaData {
     src: string;
     type: "video" | "image";
     alt?: string;
+    title?: string;
+    year?: string;
+    category?: string;
+    brandCategories?: string[];
+    insight?: string;
+    description?: string;
+    services?: string[];
+    tools?: string[];
+    caseStudyUrl?: string;
+    liveWebsiteUrl?: string;
 }
 
 interface VisualProductionProps {
@@ -24,7 +34,7 @@ interface VisualProductionProps {
 const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClose: () => void }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [isMuted, setIsMuted] = useState(false); // Default to unmuted in modal
+    const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolume] = useState(1);
 
     useEffect(() => {
@@ -53,7 +63,6 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
             const newMuted = !isMuted;
             videoRef.current.muted = newMuted;
             setIsMuted(newMuted);
-            // If unmute and volume is 0, set to 1
             if (!newMuted && volume === 0) {
                 setVolume(1);
                 videoRef.current.volume = 1;
@@ -82,7 +91,6 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                     onClick={onClose}
                 />
 
-                {/* Ambient Glow for Modal */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
                     <video
                         src={video.src}
@@ -106,7 +114,6 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                         <X size={20} />
                     </button>
 
-                    {/* Top Media Area */}
                     <div className="relative h-64 md:h-96 w-full flex-shrink-0 bg-black group relative">
                         <video
                             ref={videoRef}
@@ -119,7 +126,6 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                         />
                         <div className="absolute inset-0 bg-black/10 pointer-events-none" />
 
-                        {/* Controls Overlay */}
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <button
                                 onClick={togglePlay}
@@ -137,56 +143,101 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                         </div>
                     </div>
 
-                    {/* Bottom Content Area */}
                     <div className="flex flex-col p-6 md:p-8 overflow-y-auto bg-[#111111] text-white h-full">
-                        {/* Header */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
                             <div>
-                                <p className="text-sm font-medium text-gray-400 mb-1">2023</p>
+                                <p className="text-sm font-medium text-gray-400 mb-1">{video.year || "2024"}</p>
                                 <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">
-                                    {video.alt || "Visual Project"}
+                                    {video.title || video.alt || "Visual Project"}
                                 </h3>
                                 <p className="text-lg text-gray-400 italic">
-                                    Visual Production & Motion
+                                    {video.brandCategories && video.brandCategories.length > 0
+                                        ? video.brandCategories.join(" / ")
+                                        : video.category || "Visual Production & Motion"}
                                 </p>
                             </div>
-                            {/* Buttons */}
                             <div className="flex gap-3">
-                                <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium cursor-none">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    Case Study
-                                </button>
-                                <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#CCFF00] text-black hover:bg-[#b3e600] transition-colors text-sm font-medium cursor-none">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M2 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    View Live
-                                </button>
+                                {video.caseStudyUrl && (
+                                    <a
+                                        href={video.caseStudyUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium cursor-none"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                                            <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        Case Study
+                                    </a>
+                                )}
+                                {video.liveWebsiteUrl && (
+                                    <a
+                                        href={video.liveWebsiteUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#CCFF00] text-black hover:bg-[#b3e600] transition-colors text-sm font-medium cursor-none"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M2 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        View Live
+                                    </a>
+                                )}
                             </div>
                         </div>
 
-                        {/* Content */}
-                        <div className="space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="space-y-6"
+                        >
                             <div>
                                 <h4 className="text-xl font-bold text-white mb-3">Project Insight</h4>
-                                <p className="text-gray-400 leading-relaxed">
-                                    A cinematic exploration of visual storytelling. This project highlights the intersection of motion, sound, and brand narrative.
+                                <p className="text-gray-400 leading-relaxed whitespace-pre-wrap">
+                                    {video.insight
+                                        ? video.insight
+                                        : video.description || "A cinematic exploration of visual storytelling. This project highlights the intersection of motion, sound, and brand narrative."}
                                 </p>
                             </div>
-                            <div className="flex flex-wrap gap-3 mt-8">
-                                {["Motion", "Editing", "Visuals", "Production"].map((tag) => (
-                                    <span key={tag} className="px-5 py-2 rounded-full bg-white/5 text-gray-300 text-sm border border-white/10">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
+
+                            {video.services && video.services.length > 0 && (
+                                <div className="flex flex-wrap gap-3 mt-6">
+                                    {video.services.map((tag) => (
+                                        <span key={tag} className="px-5 py-2 rounded-full bg-white/5 text-gray-300 text-sm border border-white/10">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {video.tools && video.tools.length > 0 && (
+                                <div className="mt-8 border-t border-white/10 pt-6">
+                                    <h5 className="text-sm font-bold text-gray-500 mb-4 uppercase tracking-wider">Tools Used</h5>
+                                    <div className="flex flex-wrap gap-4">
+                                        {video.tools.map((tool) => {
+                                            const isUrl = tool.startsWith("http");
+                                            return (
+                                                <div key={tool} className="relative w-10 h-10 group" title={tool.replace(".png", "")}>
+                                                    <div className="absolute inset-0 bg-white/10 rounded-lg group-hover:bg-white/20 transition-colors" />
+                                                    <div className="relative w-full h-full p-2">
+                                                        <img
+                                                            src={isUrl ? tool : `/assets/minilog/${tool}`}
+                                                            alt={tool}
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
                     </div>
                 </motion.div>
             </div>
@@ -637,9 +688,7 @@ export const VisualProductionShowcase = () => {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
-                // Try fetching from Firestore first
                 let firestoreVideos: MediaData[] = [];
-                // Dynamic import
                 const { db } = await import("@/lib/firebase");
                 const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
 
@@ -653,7 +702,17 @@ export const VisualProductionShowcase = () => {
                                 id: doc.id,
                                 src: data.src,
                                 type: data.type as "video" | "image",
-                                alt: data.code || data.alt // Map firestore code to alt for display
+                                alt: data.code || data.alt,
+                                title: data.title,
+                                year: data.year,
+                                category: data.category,
+                                brandCategories: data.brandCategories,
+                                insight: data.insight,
+                                description: data.description,
+                                services: data.services,
+                                tools: data.tools,
+                                caseStudyUrl: data.caseStudyUrl,
+                                liveWebsiteUrl: data.liveWebsiteUrl
                             };
                         });
                     }

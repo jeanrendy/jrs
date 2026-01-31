@@ -8,15 +8,34 @@ import { useOutsideClick } from "@/hooks/use-outside-click";
 import Image from "next/image";
 import { useCursor, CursorType } from "@/context/cursor-context";
 
+// Define the full Project interface based on Firestore data
+interface Project {
+    id?: string;
+    src: string;
+    alt: string;
+    code: string; // Legacy field, often used as Title
+    title?: string;
+    category: string;
+    brandCategories?: string[];
+    year?: string;
+    insight?: string;
+    description?: string;
+    services?: string[];
+    tools?: string[];
+    caseStudyUrl?: string;
+    liveWebsiteUrl?: string;
+    galleryUrls?: string[];
+}
+
 export const PortfolioShowcase = () => {
-    const [images, setImages] = useState<{ src: string; alt: string; code: string; category: string }[]>([]);
+    const [images, setImages] = useState<Project[]>([]);
     const { setCursorType } = useCursor();
 
     useEffect(() => {
         const fetchImages = async () => {
             try {
                 // Try fetching from Firestore first
-                let firestoreProjects: { src: string; alt: string; code: string; category: string }[] = [];
+                let firestoreProjects: Project[] = [];
                 // Dynamic import to avoid SSR issues if firebase isn't fully ready
                 const { db } = await import("@/lib/firebase");
                 const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
@@ -28,10 +47,21 @@ export const PortfolioShowcase = () => {
                         firestoreProjects = querySnapshot.docs.map(doc => {
                             const data = doc.data();
                             return {
-                                src: data.src,
-                                alt: data.code, // Use code/title as alt
-                                code: data.code,
-                                category: data.category
+                                id: doc.id,
+                                src: data.thumbnailUrl || data.src || "",
+                                alt: data.alt || data.title || data.code || "Project Image",
+                                code: data.title || data.code || "Untitled", // Use title as primary code/name
+                                title: data.title || data.code,
+                                category: (data.brandCategories && data.brandCategories[0]) || data.category || "Branding",
+                                brandCategories: data.brandCategories || [],
+                                year: data.year || "2024",
+                                insight: data.insight || data.description || "",
+                                description: data.description,
+                                services: data.services || [],
+                                tools: data.tools || [],
+                                caseStudyUrl: data.caseStudyUrl || "",
+                                liveWebsiteUrl: data.liveWebsiteUrl || "",
+                                galleryUrls: data.galleryUrls || []
                             };
                         });
                     }
@@ -42,7 +72,7 @@ export const PortfolioShowcase = () => {
                     return;
                 }
 
-                // Fallback to local files API
+                // Fallback to local files API if no Firestore data
                 const response = await fetch('/api/brand-design-images');
                 const data = await response.json();
                 if (Array.isArray(data)) {
@@ -58,7 +88,10 @@ export const PortfolioShowcase = () => {
                             src: path,
                             alt: brandName,
                             code: brandName,
-                            category: category
+                            category: category,
+                            year: "2023",
+                            services: ["Branding", "Identity"],
+                            tools: []
                         };
                     });
                     setImages(formatted);
@@ -156,14 +189,14 @@ const HoverExpand_001 = ({
     className,
     setCursorType
 }: {
-    images: { src: string; alt: string; code: string; category: string }[];
+    images: Project[];
     className?: string;
     setCursorType: (type: CursorType) => void;
 }) => {
     const [activeImage, setActiveImage] = useState<number | null>(2);
     const [isHovered, setIsHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [selectedProject, setSelectedProject] = useState<{ src: string; alt: string; code: string; category: string } | null>(null);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const ref = useRef<HTMLDivElement>(null);
     const id = useId();
 
@@ -236,7 +269,13 @@ const HoverExpand_001 = ({
 
                             <div className="relative h-64 md:h-96 w-full flex-shrink-0 bg-black">
                                 <motion.div layoutId={`image-${selectedProject.code}-${id}`} className="h-full w-full relative">
-                                    <ProjectSlider images={[selectedProject.src, '/assets/phland.png', '/assets/phland.png', '/assets/phland.png']} />
+                                    <ProjectSlider
+                                        images={
+                                            selectedProject.galleryUrls && selectedProject.galleryUrls.length > 0
+                                                ? [selectedProject.src, ...selectedProject.galleryUrls.filter(url => url !== selectedProject.src)]
+                                                : [selectedProject.src]
+                                        }
+                                    />
                                 </motion.div>
                             </div>
 
@@ -244,43 +283,54 @@ const HoverExpand_001 = ({
                                 {/* Header Row */}
                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
                                     <div>
-                                        <p className="text-sm font-medium text-gray-400 mb-1">2023</p>
+                                        <p className="text-sm font-medium text-gray-400 mb-1">{selectedProject.year || "2024"}</p>
                                         <motion.h3
                                             layoutId={`title-${selectedProject.code}-${id}`}
                                             className="text-3xl md:text-4xl font-bold text-white mb-1"
                                         >
-                                            {selectedProject.code}
+                                            {selectedProject.title || selectedProject.code}
                                         </motion.h3>
                                         <motion.p
                                             layoutId={`description-${selectedProject.alt}-${id}`}
                                             className="text-lg text-gray-400 italic"
                                         >
-                                            {selectedProject.category}
+                                            {selectedProject.brandCategories && selectedProject.brandCategories.length > 0
+                                                ? selectedProject.brandCategories.join(" / ")
+                                                : selectedProject.category}
                                         </motion.p>
                                     </div>
 
                                     <div className="flex gap-3">
-                                        <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium cursor-none">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            </svg>
-                                            Case Study
-                                        </button>
-                                        <a
-                                            href={selectedProject.code === 'Atelier Jolie' ? "https://www.atelierjolie.com" : "#"}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#CCFF00] text-black hover:bg-[#b3e600] transition-colors text-sm font-medium cursor-none"
-                                        >
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                <path d="M2 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            </svg>
-                                            View Live
-                                        </a>
+                                        {selectedProject.caseStudyUrl && (
+                                            <a
+                                                href={selectedProject.caseStudyUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium cursor-none"
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                                                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                                Case Study
+                                            </a>
+                                        )}
+                                        {selectedProject.liveWebsiteUrl && (
+                                            <a
+                                                href={selectedProject.liveWebsiteUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#CCFF00] text-black hover:bg-[#b3e600] transition-colors text-sm font-medium cursor-none"
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                                                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M2 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                                View Live
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
 
@@ -292,21 +342,45 @@ const HoverExpand_001 = ({
                                 >
                                     <div>
                                         <h4 className="text-xl font-bold text-white mb-3">Project Insight</h4>
-                                        <p className="text-gray-400 leading-relaxed">
-                                            For {selectedProject.code}, I took a deep dive into creating a visual identity that truly reflects the core values of the brand while keeping things fresh and modern. The goal wasn't just to design a logo, but to build a complete visual language that feels both sophisticated and cutting-edge.
-                                        </p>
-                                        <p className="text-gray-400 leading-relaxed mt-4">
-                                            From the initial sketches to the high-fidelity renders, every pixel was crafted with intention to ensure the brand's identity was both powerful and cohesive.
+                                        <p className="text-gray-400 leading-relaxed whitespace-pre-wrap">
+                                            {selectedProject.insight
+                                                ? selectedProject.insight
+                                                : selectedProject.description || "No project insight available."}
                                         </p>
                                     </div>
 
-                                    <div className="flex flex-wrap gap-3 mt-8">
-                                        {["Branding", "Website", "Art Direction", "Motion"].map((tag) => (
-                                            <span key={tag} className="px-5 py-2 rounded-full bg-white/5 text-gray-300 text-sm border border-white/10">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
+                                    {/* Services */}
+                                    {selectedProject.services && selectedProject.services.length > 0 && (
+                                        <div className="flex flex-wrap gap-3 mt-6">
+                                            {selectedProject.services.map((tag) => (
+                                                <span key={tag} className="px-5 py-2 rounded-full bg-white/5 text-gray-300 text-sm border border-white/10">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Tools */}
+                                    {selectedProject.tools && selectedProject.tools.length > 0 && (
+                                        <div className="mt-8 border-t border-white/10 pt-6">
+                                            <h5 className="text-sm font-bold text-gray-500 mb-4 uppercase tracking-wider">Tools Used</h5>
+                                            <div className="flex flex-wrap gap-4">
+                                                {selectedProject.tools.map((tool) => (
+                                                    <div key={tool} className="relative w-10 h-10 group" title={tool.replace(".png", "")}>
+                                                        <div className="absolute inset-0 bg-white/10 rounded-lg group-hover:bg-white/20 transition-colors" />
+                                                        <div className="relative w-full h-full p-2">
+                                                            <Image
+                                                                src={`/assets/minilog/${tool}`}
+                                                                alt={tool}
+                                                                fill
+                                                                className="object-contain"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </motion.div>
                             </div>
                         </motion.div>
@@ -402,7 +476,7 @@ const HoverExpand_001 = ({
     );
 };
 
-const MobileCardStack = ({ images, onSelect, id }: { images: { src: string; alt: string; code: string; category: string }[]; onSelect: (img: any) => void; id: string }) => {
+const MobileCardStack = ({ images, onSelect, id }: { images: Project[]; onSelect: (img: any) => void; id: string }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

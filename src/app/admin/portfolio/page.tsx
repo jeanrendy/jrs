@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc, query, orderBy, Timestamp, writeBatch } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
@@ -24,6 +25,7 @@ interface Project {
 }
 
 export default function AdminPortfolio() {
+    const router = useRouter();
     const [projects, setProjects] = useState<Project[]>([]);
     const [visuals, setVisuals] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
@@ -48,7 +50,11 @@ export default function AdminPortfolio() {
     }, []);
 
     const fetchAll = async () => {
-        if (!db) return;
+        if (!db) {
+            console.error("Firestore database is not initialized. Check your .env configuration.");
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             // 1. Fetch Showcase Projects
@@ -78,71 +84,12 @@ export default function AdminPortfolio() {
         }
     };
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!db) return;
-        setSubmitting(true);
-        const collectionName = activeTab === "showcase" ? "projects" : "visual_productions";
-
-        try {
-            let currentSrc = formData.src;
-
-            if (file && storage) {
-                const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                currentSrc = await getDownloadURL(snapshot.ref);
-            }
-
-            if (editingId) {
-                // Update existing
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await updateDoc(doc(db as any, collectionName, editingId), {
-                    ...formData,
-                    src: currentSrc
-                    // Don't update createdAt usually, or maybe update updatedAt
-                });
-            } else {
-                // Add new
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await addDoc(collection(db as any, collectionName), {
-                    ...formData,
-                    src: currentSrc,
-                    createdAt: Timestamp.now()
-                });
-            }
-
-            setIsOpen(false);
-            resetForm();
-            fetchAll();
-        } catch (error) {
-            console.error("Error saving item:", error);
-            alert("Failed to save item.");
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const handleEdit = (item: Project) => {
-        setFormData({
-            code: item.code || "",
-            category: item.category || "",
-            src: item.src || "",
-            type: (item.type || "image"),
-            alt: item.alt || ""
-        });
-        setEditingId(item.id);
-        setIsOpen(true);
+        router.push(`/admin/portfolio/editor?id=${item.id}&tab=${activeTab}`);
     };
 
-    const resetForm = () => {
-        setFormData({ code: "", category: "", src: "", type: "image", alt: "" });
-        setEditingId(null);
-        setFile(null);
-    };
-
-    const openNewDialog = () => {
-        resetForm();
-        setIsOpen(true);
+    const handleCreateNew = () => {
+        router.push(`/admin/portfolio/editor?id=new&tab=${activeTab}`);
     };
 
     const handleDelete = async (id: string, collectionName: string) => {
@@ -247,82 +194,9 @@ export default function AdminPortfolio() {
                         {importing ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
                         Sync from Static
                     </Button>
-                    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                        <DialogTrigger asChild>
-                            <Button onClick={openNewDialog} className="bg-black text-white hover:bg-gray-800 gap-2">
-                                <Plus size={16} /> Add New
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="bg-white text-black">
-                            <DialogHeader>
-                                <DialogTitle>{editingId ? "Edit" : "Add"} {activeTab === "showcase" ? "Project" : "Visual Production"}</DialogTitle>
-                            </DialogHeader>
-                            <form onSubmit={handleSave} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Title / Code</label>
-                                    <Input
-                                        placeholder="e.g. Nike Air"
-                                        value={formData.code}
-                                        onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                                        required
-                                        className="bg-white border-gray-200 text-black"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Category</label>
-                                    <Input
-                                        placeholder="e.g. Branding & Identity"
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        required={activeTab === "showcase"}
-                                        className="bg-white border-gray-200 text-black"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Source URL / Path</label>
-                                    <Input
-                                        placeholder="/assets/..."
-                                        value={formData.src}
-                                        onChange={(e) => setFormData({ ...formData, src: e.target.value })}
-                                        required={!file}
-                                        className="bg-white border-gray-200 text-black"
-                                    />
-                                    <div className="mt-2">
-                                        <p className="text-xs text-gray-500 mb-1">Or upload a file (overrides URL)</p>
-                                        <Input
-                                            type="file"
-                                            onChange={(e) => {
-                                                if (e.target.files && e.target.files[0]) {
-                                                    setFile(e.target.files[0]);
-                                                }
-                                            }}
-                                            accept="image/*,video/*"
-                                            className="bg-white border-gray-200 text-black cursor-pointer"
-                                        />
-                                    </div>
-                                </div>
-                                {activeTab === "visuals" && (
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">Type</label>
-                                        <select
-                                            className="w-full border rounded-md p-2 text-sm bg-white border-gray-200 text-black"
-                                            value={formData.type}
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                            onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                                        >
-                                            <option value="video">Video</option>
-                                            <option value="image">Image</option>
-                                        </select>
-                                    </div>
-                                )}
-                                <DialogFooter>
-                                    <Button type="submit" disabled={submitting} className="bg-black text-white hover:bg-gray-800">
-                                        {submitting ? "Saving..." : "Save Item"}
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                    <Button onClick={handleCreateNew} className="bg-black text-white hover:bg-gray-800 gap-2">
+                        <Plus size={16} /> Add New
+                    </Button>
                 </div>
             </div>
 
@@ -454,4 +328,4 @@ export default function AdminPortfolio() {
             </Tabs>
         </div>
     );
-}
+};
