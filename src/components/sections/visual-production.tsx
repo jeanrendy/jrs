@@ -22,6 +22,54 @@ interface VisualProductionProps {
 }
 
 const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClose: () => void }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [isMuted, setIsMuted] = useState(false); // Default to unmuted in modal
+    const [volume, setVolume] = useState(1);
+
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.play().catch(() => setIsPlaying(false));
+            videoRef.current.volume = volume;
+            videoRef.current.muted = isMuted;
+        }
+    }, [video, volume, isMuted]);
+
+    const togglePlay = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (videoRef.current) {
+            if (isPlaying) {
+                videoRef.current.pause();
+                setIsPlaying(false);
+            } else {
+                videoRef.current.play();
+                setIsPlaying(true);
+            }
+        }
+    };
+
+    const toggleMute = () => {
+        if (videoRef.current) {
+            const newMuted = !isMuted;
+            videoRef.current.muted = newMuted;
+            setIsMuted(newMuted);
+            // If unmute and volume is 0, set to 1
+            if (!newMuted && volume === 0) {
+                setVolume(1);
+                videoRef.current.volume = 1;
+            }
+        }
+    };
+
+    const handleVolumeChange = (newVolume: number) => {
+        if (videoRef.current) {
+            videoRef.current.volume = newVolume;
+            setVolume(newVolume);
+            setIsMuted(newVolume === 0);
+            videoRef.current.muted = newVolume === 0;
+        }
+    };
+
     if (!video) return null;
     return (
         <AnimatePresence>
@@ -59,16 +107,34 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                     </button>
 
                     {/* Top Media Area */}
-                    <div className="relative h-64 md:h-96 w-full flex-shrink-0 bg-black">
+                    <div className="relative h-64 md:h-96 w-full flex-shrink-0 bg-black group relative">
                         <video
+                            ref={videoRef}
                             src={video.src}
                             className="w-full h-full object-cover"
-                            autoPlay
-                            muted
+                            muted={isMuted}
                             loop
                             playsInline
+                            onClick={togglePlay}
                         />
-                        <div className="absolute inset-0 bg-black/10" />
+                        <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+
+                        {/* Controls Overlay */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <button
+                                onClick={togglePlay}
+                                className="text-white hover:text-white/80 transition-colors"
+                            >
+                                {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                            </button>
+
+                            <VolumeControl
+                                isMuted={isMuted}
+                                volume={volume}
+                                onToggleMute={toggleMute}
+                                onVolumeChange={handleVolumeChange}
+                            />
+                        </div>
                     </div>
 
                     {/* Bottom Content Area */}

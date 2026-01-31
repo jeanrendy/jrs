@@ -22,6 +22,7 @@ interface PageContent {
         titleLine3Part1: string;
         titleLine3Part2: string;
         description: string;
+        profileImage: string;
     };
     digitalPlayground: {
         title: string;
@@ -40,7 +41,8 @@ const defaultContent: PageContent = {
         titleLine2: "Let's Make",
         titleLine3Part1: "Something",
         titleLine3Part2: "Awesome",
-        description: "I'm Jean, your digital design sidekick. Got a crazy idea? Let's bring it to life! I'm a full-stack designer, which means I can handle almost everything."
+        description: "I'm Jean, your digital design sidekick. Got a crazy idea? Let's bring it to life! I'm a full-stack designer, which means I can handle almost everything.",
+        profileImage: "/assets/prof2.png"
     },
     digitalPlayground: {
         title: "My Digital Playground",
@@ -141,6 +143,19 @@ export default function AdminLanding() {
         inputRefs.current[`${section}.${field}`] = el;
     };
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || !e.target.files[0]) return;
+        const file = e.target.files[0];
+        try {
+            const { uploadFile } = await import("@/lib/upload");
+            const url = await uploadFile(file, "profile");
+            handleChange("hero", "profileImage", url);
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Upload failed");
+        }
+    };
+
     if (loading) return <div className="flex h-screen items-center justify-center">Loading Editor...</div>;
 
     return (
@@ -228,6 +243,22 @@ export default function AdminLanding() {
                                         onChange={(val) => handleChange("hero", "description", val)}
                                         className="min-h-[150px]"
                                     />
+
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-gray-500">Profile Image</label>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="relative w-full h-[200px] bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={content.hero.profileImage || "/assets/prof2.png"} alt="Preview" className="w-full h-full object-contain" />
+                                        </div>
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="bg-white border-gray-200 text-black cursor-pointer text-xs"
+                                        />
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

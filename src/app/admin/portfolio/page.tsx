@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc, query, orderBy, Timestamp, writeBatch } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,6 +32,7 @@ export default function AdminPortfolio() {
     const [importing, setImporting] = useState(false);
     const [activeTab, setActiveTab] = useState("showcase");
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [file, setFile] = useState<File | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -83,11 +85,20 @@ export default function AdminPortfolio() {
         const collectionName = activeTab === "showcase" ? "projects" : "visual_productions";
 
         try {
+            let currentSrc = formData.src;
+
+            if (file && storage) {
+                const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+                const snapshot = await uploadBytes(storageRef, file);
+                currentSrc = await getDownloadURL(snapshot.ref);
+            }
+
             if (editingId) {
                 // Update existing
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 await updateDoc(doc(db as any, collectionName, editingId), {
                     ...formData,
+                    src: currentSrc
                     // Don't update createdAt usually, or maybe update updatedAt
                 });
             } else {
@@ -95,6 +106,7 @@ export default function AdminPortfolio() {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 await addDoc(collection(db as any, collectionName), {
                     ...formData,
+                    src: currentSrc,
                     createdAt: Timestamp.now()
                 });
             }
@@ -125,6 +137,7 @@ export default function AdminPortfolio() {
     const resetForm = () => {
         setFormData({ code: "", category: "", src: "", type: "image", alt: "" });
         setEditingId(null);
+        setFile(null);
     };
 
     const openNewDialog = () => {
@@ -271,9 +284,22 @@ export default function AdminPortfolio() {
                                         placeholder="/assets/..."
                                         value={formData.src}
                                         onChange={(e) => setFormData({ ...formData, src: e.target.value })}
-                                        required
+                                        required={!file}
                                         className="bg-white border-gray-200 text-black"
                                     />
+                                    <div className="mt-2">
+                                        <p className="text-xs text-gray-500 mb-1">Or upload a file (overrides URL)</p>
+                                        <Input
+                                            type="file"
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    setFile(e.target.files[0]);
+                                                }
+                                            }}
+                                            accept="image/*,video/*"
+                                            className="bg-white border-gray-200 text-black cursor-pointer"
+                                        />
+                                    </div>
                                 </div>
                                 {activeTab === "visuals" && (
                                     <div className="space-y-2">

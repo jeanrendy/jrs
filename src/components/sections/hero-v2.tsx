@@ -22,6 +22,7 @@ export interface HeroProps {
         titleLine3Part1?: string;
         titleLine3Part2?: string;
         description?: string;
+        profileImage?: string;
     };
     onFieldClick?: (field: string) => void;
 }
@@ -82,7 +83,7 @@ export function Hero({ companyLogos = [], content, onFieldClick }: HeroProps) {
             >
                 <div className="relative w-full h-full">
                     <Image
-                        src="/assets/prof2.png"
+                        src={content?.profileImage || "/assets/prof2.png"}
                         alt="Jean Rendy Profile"
                         fill
                         className="object-contain object-right-bottom drop-shadow-2xl scale-130 origin-bottom-right"
