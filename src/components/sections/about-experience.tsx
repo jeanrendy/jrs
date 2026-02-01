@@ -318,50 +318,16 @@ const itemVariants = {
 } as const;
 
 export function AboutExperience() {
-    const { theme } = useTheme();
     const lenis = useLenis();
-    const [mounted, setMounted] = useState(false);
-    const isDark = theme === "dark";
     const [openId, setOpenId] = useState<string | null>(experiences[0]?.id || null);
     const [showAll, setShowAll] = useState(false);
 
     const displayedExperiences = showAll ? experiences : experiences.slice(0, 5);
 
-    // Prevent hydration mismatch by only rendering theme-dependent content after mount
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
+    // Hydration fix: Remove manual mounted check, rely on CSS dark mode
     const toggleAccordion = (id: string) => {
         setOpenId(openId === id ? null : id);
     };
-
-    // Prevent hydration mismatch - render with default theme until mounted
-    if (!mounted) {
-        return (
-            <section id="about" className="relative py-24 md:py-32 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background pointer-events-none" />
-                <div className="container mx-auto px-6 md:px-8 max-w-7xl relative z-10">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 md:mb-16">
-                        <div className="max-w-2xl">
-                            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-4 md:mb-6">
-                                Experience
-                            </h2>
-                            <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                                {experiences.length}+ positions across creative, design, and leadership roles
-                            </p>
-                        </div>
-                        <div className="flex-shrink-0">
-                            <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium text-sm md:text-base border transition-all duration-300">
-                                View LinkedIn
-                                <ExternalLink className="w-4 h-4" />
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        );
-    }
 
     return (
         <section id="about" className="relative py-24 md:py-32 overflow-hidden">
@@ -369,12 +335,9 @@ export function AboutExperience() {
             <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background pointer-events-none" />
 
             {/* Grid pattern overlay */}
+            {/* Grid pattern overlay */}
             <div
-                className="absolute inset-0 opacity-[0.02] pointer-events-none"
-                style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, ${isDark ? "white" : "black"} 1px, transparent 0)`,
-                    backgroundSize: "40px 40px",
-                }}
+                className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[radial-gradient(circle_at_1px_1px,black_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] bg-[length:40px_40px]"
             />
 
             <div className="container mx-auto px-6 md:px-8 max-w-7xl relative z-10">
@@ -388,7 +351,7 @@ export function AboutExperience() {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 md:mb-16">
                         <motion.div variants={itemVariants} className="max-w-2xl">
                             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-4 md:mb-6">
-                                <span className={isDark ? "text-white" : "text-black"}>Experience</span>
+                                <span className="text-black dark:text-white">Experience</span>
                             </h2>
                             <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
                                 {experiences.length}+ positions across creative, design, and leadership roles
@@ -400,10 +363,7 @@ export function AboutExperience() {
                                 href="https://www.linkedin.com/in/jeanrendy/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium text-sm md:text-base transition-all duration-300 ${isDark
-                                    ? "bg-white text-black hover:bg-white/90"
-                                    : "bg-black text-white hover:bg-black/90"
-                                    }`}
+                                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium text-sm md:text-base transition-all duration-300 bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                             >
                                 View LinkedIn
                                 <ExternalLink className="w-4 h-4" />
@@ -431,10 +391,7 @@ export function AboutExperience() {
                                         layout
                                     >
                                         <div
-                                            className={`rounded-2xl border backdrop-blur-sm transition-all duration-300 ${isDark
-                                                ? "bg-white/[0.03] border-white/10 hover:bg-white/[0.05]"
-                                                : "bg-black/[0.03] border-black/10 hover:bg-black/[0.05]"
-                                                } ${isOpen ? "shadow-lg" : ""}`}
+                                            className={`rounded-2xl border backdrop-blur-sm transition-all duration-300 bg-black/[0.03] border-black/10 hover:bg-black/[0.05] dark:bg-white/[0.03] dark:border-white/10 dark:hover:bg-white/[0.05] ${isOpen ? "shadow-lg" : ""}`}
                                         >
                                             {/* Accordion Header */}
                                             <button
@@ -443,12 +400,9 @@ export function AboutExperience() {
                                             >
                                                 {/* Icon */}
                                                 <div
-                                                    className={`flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${isDark
-                                                        ? "border-white/20 bg-white/5 group-hover:bg-white/10"
-                                                        : "border-black/20 bg-black/5 group-hover:bg-black/10"
-                                                        } ${isOpen ? "scale-110" : ""}`}
+                                                    className={`flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-300 border-black/20 bg-black/5 group-hover:bg-black/10 dark:border-white/20 dark:bg-white/5 dark:group-hover:bg-white/10 ${isOpen ? "scale-110" : ""}`}
                                                 >
-                                                    <Briefcase className={`w-5 h-5 md:w-6 md:h-6 ${isDark ? "text-white" : "text-black"}`} />
+                                                    <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-black dark:text-white" />
                                                 </div>
 
                                                 {/* Content */}
@@ -456,18 +410,16 @@ export function AboutExperience() {
                                                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 md:gap-4 mb-2">
                                                         <div className="flex-1 min-w-0">
                                                             <h3
-                                                                className={`text-xl md:text-2xl font-bold mb-1 ${isDark ? "text-white" : "text-black"
-                                                                    }`}
+                                                                className="text-xl md:text-2xl font-bold mb-1 text-black dark:text-white"
                                                             >
                                                                 {exp.title}
                                                             </h3>
-                                                            <p className={`text-base md:text-lg font-medium ${isDark ? "text-white/70" : "text-black/70"}`}>
+                                                            <p className="text-base md:text-lg font-medium text-black/70 dark:text-white/70">
                                                                 {exp.company}
                                                             </p>
                                                         </div>
                                                         <div
-                                                            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs md:text-sm font-medium ${isDark ? "bg-white/10 text-white/90" : "bg-black/10 text-black/90"
-                                                                }`}
+                                                            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs md:text-sm font-medium bg-black/10 text-black/90 dark:bg-white/10 dark:text-white/90"
                                                         >
                                                             {exp.duration}
                                                         </div>
@@ -496,7 +448,7 @@ export function AboutExperience() {
                                                     className="flex-shrink-0"
                                                 >
                                                     <ChevronDown
-                                                        className={`w-5 h-5 md:w-6 md:h-6 ${isDark ? "text-white/50" : "text-black/50"}`}
+                                                        className="w-5 h-5 md:w-6 md:h-6 text-black/50 dark:text-white/50"
                                                     />
                                                 </motion.div>
                                             </button>
@@ -517,12 +469,10 @@ export function AboutExperience() {
                                                                 {exp.description.map((item, idx) => (
                                                                     <li
                                                                         key={idx}
-                                                                        className={`flex items-start gap-3 text-sm md:text-base ${isDark ? "text-white/60" : "text-black/60"
-                                                                            }`}
+                                                                        className="flex items-start gap-3 text-sm md:text-base text-black/60 dark:text-white/60"
                                                                     >
                                                                         <span
-                                                                            className={`mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0 ${isDark ? "bg-white/40" : "bg-black/40"
-                                                                                }`}
+                                                                            className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-black/40 dark:bg-white/40"
                                                                         />
                                                                         <span>{item}</span>
                                                                     </li>
@@ -535,10 +485,7 @@ export function AboutExperience() {
                                                                     {exp.skills.map((skill, idx) => (
                                                                         <span
                                                                             key={idx}
-                                                                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${isDark
-                                                                                ? "bg-white/5 text-white/70 border border-white/10"
-                                                                                : "bg-black/5 text-black/70 border border-black/10"
-                                                                                }`}
+                                                                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-black/5 text-black/70 border border-black/10 dark:bg-white/5 dark:text-white/70 dark:border-white/10"
                                                                         >
                                                                             {skill}
                                                                         </span>
@@ -552,8 +499,7 @@ export function AboutExperience() {
                                                                     href={exp.companyUrl}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className={`inline-flex items-center gap-2 mt-4 text-sm font-medium hover:underline ${isDark ? "text-white/80" : "text-black/80"
-                                                                        }`}
+                                                                    className="inline-flex items-center gap-2 mt-4 text-sm font-medium hover:underline text-black/80 dark:text-white/80"
                                                                 >
                                                                     Visit {exp.company}
                                                                     <ExternalLink className="w-3.5 h-3.5" />
@@ -587,10 +533,7 @@ export function AboutExperience() {
                                 }
                                 setShowAll(!showAll);
                             }}
-                            className={`inline-flex items-center gap-2 px-8 py-4 rounded-full font-medium text-base md:text-lg transition-all duration-300 border ${isDark
-                                ? "border-white/20 hover:bg-white/10 text-white"
-                                : "border-black/20 hover:bg-black/5 text-black"
-                                }`}
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-medium text-base md:text-lg transition-all duration-300 border border-black/20 hover:bg-black/5 text-black dark:border-white/20 dark:hover:bg-white/10 dark:text-white"
                         >
                             {showAll ? "Show Less" : "Show More"}
                             <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`} />
