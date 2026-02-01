@@ -424,28 +424,71 @@ const StickyCard002 = ({
         { scope: container, dependencies: [mediaItems] }
     );
 
-    const togglePlay = (e: React.MouseEvent, index: number) => {
+    const togglePlay = (e: React.MouseEvent, index: number, isYouTube: boolean = false) => {
         e.stopPropagation();
+
+        // Native Video Logic
         const card = cardRefs.current[index];
-        const videos = card?.querySelectorAll('video');
-        videos?.forEach(video => {
-            if (video.paused) video.play().catch(() => { });
-            else video.pause();
-        });
+        if (!isYouTube) {
+            const videos = card?.querySelectorAll('video');
+            videos?.forEach(video => {
+                if (video.paused) video.play().catch(() => { });
+                else video.pause();
+            });
+            return;
+        }
+
+        // YouTube Logic
+        // Find iframe
+        const iframe = card?.querySelector('iframe');
+        if (iframe && iframe.contentWindow) {
+            const currentState = cardStates[index];
+            if (currentState.playing) {
+                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                // Optimistically update state since we can't easily listen to iframe events without API wrapper
+                updateCardState(index, { playing: false }, true);
+            } else {
+                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                updateCardState(index, { playing: true }, true);
+            }
+        }
     };
 
-    const updateCardState = (index: number, newState: Partial<CardState>) => {
+    const updateCardState = (index: number, newState: Partial<CardState>, isYouTube: boolean = false) => {
         setCardStates(prev => {
             const next = [...prev];
             next[index] = { ...next[index], ...newState };
             return next;
         });
+
         const card = cardRefs.current[index];
-        const videos = card?.querySelectorAll('video');
-        videos?.forEach(video => {
-            if (newState.muted !== undefined) video.muted = newState.muted;
-            if (newState.volume !== undefined) video.volume = newState.volume;
-        });
+
+        if (!isYouTube) {
+            const videos = card?.querySelectorAll('video');
+            videos?.forEach(video => {
+                if (newState.muted !== undefined) video.muted = newState.muted;
+                if (newState.volume !== undefined) video.volume = newState.volume;
+            });
+        } else {
+            const iframe = card?.querySelector('iframe');
+            if (iframe && iframe.contentWindow) {
+                if (newState.muted !== undefined) {
+                    if (newState.muted) {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+                    } else {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+                    }
+                }
+                if (newState.volume !== undefined) {
+                    // YouTube volume is 0-100
+                    const vol = Math.floor(newState.volume * 100);
+                    iframe.contentWindow.postMessage(`{"event":"command","func":"setVolume","args":[${vol}]}`, '*');
+                    if (vol > 0) {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+                    }
+                }
+            }
+        }
     };
 
     return (
@@ -493,7 +536,7 @@ const StickyCard002 = ({
                                                         {i === activeIndex ? (
                                                             <div className="w-full h-full pointer-events-none select-none">
                                                                 <iframe
-                                                                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&showinfo=0&modestbranding=1&iv_load_policy=3&rel=0&disablekb=1&fs=0`}
+                                                                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&showinfo=0&modestbranding=1&iv_load_policy=3&rel=0&disablekb=1&fs=0&enablejsapi=1`}
                                                                     className="w-[100%] h-[100%] object-cover scale-[1.35]"
                                                                     style={{ pointerEvents: 'none' }}
                                                                     title="YouTube background"
@@ -537,8 +580,8 @@ const StickyCard002 = ({
                                                 />
                                             )}
 
-                                            {/* Controls Overlay (Only for Native Video) */}
-                                            {!isYouTube && item.type === "video" && (
+                                            {/* Controls Overlay (For Native & YouTube) */}
+                                            {item.type === "video" && (
                                                 <div
                                                     className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                                                     onMouseEnter={(e) => { e.stopPropagation(); setCursorType('small'); }}
@@ -546,7 +589,7 @@ const StickyCard002 = ({
                                                 >
                                                     <div className="flex items-center gap-2 pointer-events-auto">
                                                         <button
-                                                            onClick={(e) => togglePlay(e, i)}
+                                                            onClick={(e) => togglePlay(e, i, isYouTube)}
                                                             className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
                                                             title={state.playing ? "Pause" : "Play"}
                                                         >
@@ -556,9 +599,15 @@ const StickyCard002 = ({
                                                         <VolumeControl
                                                             isMuted={state.muted}
                                                             volume={state.volume}
-                                                            onToggleMute={() => updateCardState(i, { muted: !state.muted })}
-                                                            onVolumeChange={(val) => updateCardState(i, { volume: val, muted: val === 0 })}
+                                                            onToggleMute={() => {
+                                                                const newMuted = !state.muted;
+                                                                updateCardState(i, { muted: newMuted }, isYouTube);
+                                                            }}
+                                                            onVolumeChange={(val) => {
+                                                                updateCardState(i, { volume: val, muted: val === 0 }, isYouTube);
+                                                            }}
                                                         />
+                                                        {/* Fullscreen handled via Modal selection */}
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setSelectedVideo(item); }}
                                                             className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
