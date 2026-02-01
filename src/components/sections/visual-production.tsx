@@ -581,6 +581,21 @@ const StickyCard002 = ({
                                                 />
                                             )}
 
+                                            {/* Floating Mute Toggle (Always Visible) */}
+                                            {item.type === "video" && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const newMuted = !state.muted;
+                                                        updateCardState(i, { muted: newMuted }, isYouTube);
+                                                    }}
+                                                    className="absolute top-6 right-6 z-50 p-3 bg-black/40 backdrop-blur-md rounded-full text-white/90 hover:bg-black/60 transition-colors border border-white/10"
+                                                    title={state.muted ? "Unmute" : "Mute"}
+                                                >
+                                                    {state.muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                                                </button>
+                                            )}
+
                                             {/* Controls Overlay (For Native & YouTube) */}
                                             {item.type === "video" && (
                                                 <div
