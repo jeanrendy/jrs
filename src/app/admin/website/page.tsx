@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, Plus, Trash2, RefreshCw, Pencil, Globe, GripVertical, Save } from "lucide-react";
 import { STATIC_WEBSITES, type Website } from "@/data/websites";
 import { Reorder, useDragControls } from "framer-motion";
-import { toast } from "@/hooks/use-toast"; // assuming user has this, or use alert
 
 export default function AdminWebsite() {
     const router = useRouter();
