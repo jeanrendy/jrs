@@ -528,18 +528,6 @@ const StickyCard002 = ({
                 onMouseEnter={() => setCursorType('small')}
                 onMouseLeave={() => setCursorType('default')}
             >
-                {/* Global Mute Toggle */}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        toggleGlobalMute();
-                    }}
-                    className="absolute top-24 md:top-8 right-6 z-50 p-3 bg-black/40 backdrop-blur-md rounded-full text-white/90 hover:bg-black/60 transition-colors border border-white/10"
-                    title={isGlobalMuted ? "Unmute All" : "Mute All"}
-                >
-                    {isGlobalMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                </button>
-
                 <div className="sticky-cards-visual relative flex h-[100dvh] w-full items-center justify-center overflow-hidden p-3 lg:p-8">
                     <div className="relative w-full h-full max-w-7xl flex items-center justify-center pt-24 md:pt-0">
                         <div className="absolute top-24 md:top-8 left-0 w-full z-40 flex flex-col items-center md:items-start text-center md:text-left px-6">
@@ -548,6 +536,18 @@ const StickyCard002 = ({
                                 Motion graphics, video editing, and visual storytelling.
                             </p>
                         </div>
+
+                        {/* Global Mute Toggle */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleGlobalMute();
+                            }}
+                            className="absolute top-24 md:top-8 right-6 z-50 p-3 bg-black/40 backdrop-blur-md rounded-full text-white/90 hover:bg-black/60 transition-colors border border-white/10"
+                            title={isGlobalMuted ? "Unmute All" : "Mute All"}
+                        >
+                            {isGlobalMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </button>
 
                         {mediaItems.map((item, i) => {
                             const state = cardStates[i] || { muted: true, volume: 1, playing: false };
@@ -705,7 +705,8 @@ const StickyCard002 = ({
 
             {selectedVideo && (
                 <VideoDetailsModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
-            )}
+            )
+            }
         </>
     );
 };
