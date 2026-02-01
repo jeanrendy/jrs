@@ -543,7 +543,7 @@ const StickyCard002 = ({
                                 e.stopPropagation();
                                 toggleGlobalMute();
                             }}
-                            className="absolute top-24 md:top-8 right-6 z-50 p-3 bg-black/40 backdrop-blur-md rounded-full text-white/90 hover:bg-black/60 transition-colors border border-white/10"
+                            className="absolute bottom-8 md:bottom-auto md:top-8 right-6 z-50 p-3 bg-black/40 backdrop-blur-md rounded-full text-white/90 hover:bg-black/60 transition-colors border border-white/10"
                             title={isGlobalMuted ? "Unmute All" : "Mute All"}
                         >
                             {isGlobalMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
