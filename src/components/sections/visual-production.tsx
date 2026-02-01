@@ -496,13 +496,14 @@ const StickyCard002 = ({
             <div
                 className={cn("relative h-full w-full", className)}
                 ref={container}
+                id="video-productions"
                 onMouseEnter={() => setCursorType('small')}
                 onMouseLeave={() => setCursorType('default')}
             >
                 <div className="sticky-cards-visual relative flex h-[100dvh] w-full items-center justify-center overflow-hidden p-3 lg:p-8">
                     <div className="relative w-full h-full max-w-7xl flex items-center justify-center pt-24 md:pt-0">
                         <div className="absolute top-24 md:top-8 left-6 z-40 flex flex-col items-center md:items-start text-center md:text-left">
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-black dark:text-white">Visual Productions</h2>
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-black dark:text-white">Video Productions</h2>
                             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
                                 Motion graphics, video editing, and visual storytelling.
                             </p>
@@ -521,7 +522,7 @@ const StickyCard002 = ({
                                 >
                                     <div className="relative">
                                         <div
-                                            className="visual-card relative max-h-[60dvh] md:max-h-[85dvh] max-w-full shadow-[0_35px_60px_-15px_rgba(0,0,0,0.8)] rounded-3xl overflow-hidden group bg-neutral-900 mx-4 z-10"
+                                            className="visual-card relative max-h-[60dvh] md:max-h-[85dvh] max-w-full shadow-[0_35px_60px_-15px_rgba(0,0,0,0.8)] rounded-3xl overflow-hidden group bg-black flex items-center justify-center mx-4 z-10"
                                             onMouseEnter={() => setCursorType('video')}
                                             onMouseLeave={() => setCursorType('small')}
                                             onClick={(e) => {
@@ -609,7 +610,18 @@ const StickyCard002 = ({
                                                         />
                                                         {/* Fullscreen handled via Modal selection */}
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); setSelectedVideo(item); }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const card = cardRefs.current[i];
+                                                                const visualInner = card?.querySelector('.visual-card');
+                                                                if (visualInner) {
+                                                                    if (!document.fullscreenElement) {
+                                                                        visualInner.requestFullscreen().catch(err => console.error(err));
+                                                                    } else {
+                                                                        document.exitFullscreen();
+                                                                    }
+                                                                }
+                                                            }}
                                                             className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
                                                             title="Fullscreen"
                                                         >

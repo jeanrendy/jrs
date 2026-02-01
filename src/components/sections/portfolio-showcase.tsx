@@ -479,6 +479,13 @@ const HoverExpand_001 = ({
 const MobileCardStack = ({ images, onSelect, id }: { images: Project[]; onSelect: (img: any) => void; id: string }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % images.length);
+        }, 5000); // 5 second delay
+        return () => clearInterval(timer);
+    }, [images.length]);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleDragEnd = (e: any, { offset }: any) => {
         const swipeThreshold = 50;
@@ -521,7 +528,7 @@ const MobileCardStack = ({ images, onSelect, id }: { images: Project[]; onSelect
                             onDragEnd={isTop ? handleDragEnd : undefined}
                             whileDrag={{ scale: 1.05, rotate: 2 }}
                             exit={{ x: 300, opacity: 0 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            transition={{ type: "spring", stiffness: 150, damping: 40 }}
                             onClick={() => isTop && onSelect(image)}
                         >
                             <motion.div layoutId={isTop ? `image-${image.code}-${id}` : undefined} className="w-full h-full relative">

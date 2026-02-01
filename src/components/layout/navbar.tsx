@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ThreeDLogo } from "@/components/ui/3d-logo";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
@@ -14,7 +15,16 @@ import { useRef } from "react";
 
 const navItems = [
     { name: "SERVICES", href: "/#services" },
-    { name: "WORK", href: "/#work" },
+    {
+        name: "WORKS",
+        href: "/#work",
+        submenu: [
+            { name: "Selected Works", href: "/#work" },
+            { name: "Websites", href: "/#websites" },
+            { name: "Videos", href: "/#video-productions" },
+            { name: "Experiences", href: "/#about" }
+        ]
+    },
     { name: "ABOUT", href: "/#about" },
 ];
 
@@ -23,6 +33,8 @@ export function Navbar() {
     const { setIsHovered } = useCursor();
     const [hidden, setHidden] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+    const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
     const lenis = useLenis();
 
     const scrollToFooter = () => {
@@ -88,14 +100,47 @@ export function Navbar() {
                 {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-1 pointer-events-auto ml-8">
                     {navItems.map((item) => (
-                        <Link
+                        <div
                             key={item.name}
-                            href={item.href}
-                            onClick={(e) => handleNavClick(e, item.href)}
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-1.5 px-4 rounded-full hover:bg-foreground/5"
+                            className="relative h-full flex items-center"
+                            onMouseEnter={() => setHoveredItem(item.name)}
+                            onMouseLeave={() => setHoveredItem(null)}
                         >
-                            {item.name}
-                        </Link>
+                            <Link
+                                href={item.href}
+                                onClick={(e) => handleNavClick(e, item.href)}
+                                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-1.5 px-4 rounded-full hover:bg-foreground/5 block"
+                            >
+                                {item.name}
+                            </Link>
+
+                            {/* Submenu Dropdown */}
+                            <AnimatePresence>
+                                {item.submenu && hoveredItem === item.name && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute top-full left-0 mt-2 w-48 bg-background/80 backdrop-blur-xl border border-border rounded-xl shadow-xl overflow-hidden py-2 flex flex-col gap-1 ring-1 ring-black/5"
+                                    >
+                                        {item.submenu.map((sub) => (
+                                            <Link
+                                                key={sub.name}
+                                                href={sub.href}
+                                                onClick={(e) => {
+                                                    handleNavClick(e, sub.href);
+                                                    setHoveredItem(null);
+                                                }}
+                                                className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left"
+                                            >
+                                                {sub.name}
+                                            </Link>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     ))}
 
                     <div className="w-px h-4 bg-border mx-2" />
@@ -138,14 +183,52 @@ export function Navbar() {
                     >
                         <nav className="flex flex-col gap-6 text-2xl font-medium">
                             {navItems.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    onClick={(e) => handleNavClick(e, item.href)}
-                                    className="block p-2 hover:text-primary transition-colors"
-                                >
-                                    {item.name}
-                                </Link>
+                                <div key={item.name} className="flex flex-col">
+                                    {item.submenu ? (
+                                        <>
+                                            <div
+                                                className="flex justify-between items-center p-2 hover:text-primary transition-colors cursor-pointer select-none"
+                                                onClick={() => setExpandedMobileItem(expandedMobileItem === item.name ? null : item.name)}
+                                            >
+                                                {item.name}
+                                                <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${expandedMobileItem === item.name ? "rotate-180" : ""}`} />
+                                            </div>
+                                            <AnimatePresence>
+                                                {expandedMobileItem === item.name && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="overflow-hidden flex flex-col pl-4 gap-4 text-lg text-muted-foreground"
+                                                    >
+                                                        <div className="py-2 flex flex-col gap-4">
+                                                            {item.submenu.map((sub) => (
+                                                                <Link
+                                                                    key={sub.name}
+                                                                    href={sub.href}
+                                                                    onClick={(e) => {
+                                                                        handleNavClick(e, sub.href);
+                                                                    }}
+                                                                    className="block hover:text-foreground transition-colors"
+                                                                >
+                                                                    {sub.name}
+                                                                </Link>
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </>
+                                    ) : (
+                                        <Link
+                                            href={item.href}
+                                            onClick={(e) => handleNavClick(e, item.href)}
+                                            className="block p-2 hover:text-primary transition-colors"
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    )}
+                                </div>
                             ))}
                             <div className="h-px bg-border my-4" />
                             <Button

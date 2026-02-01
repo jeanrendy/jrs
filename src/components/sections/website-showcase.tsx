@@ -65,7 +65,7 @@ export function WebsiteShowcase() {
                     </div>
                 </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {websites.slice(0, visibleCount).map((site, index) => (
                         <motion.div
                             key={site.id || site.url || index}
@@ -87,7 +87,7 @@ export function WebsiteShowcase() {
                                 onClick={() => handleCardClick(site)}
                             >
                                 <div
-                                    className="flex flex-col h-full w-full bg-card group/card"
+                                    className="flex flex-col h-full w-full bg-card group/card rounded-2xl overflow-hidden"
                                     onMouseEnter={() => setCursorType('detail')}
                                     onMouseLeave={() => setCursorType('default')}
                                 >
@@ -139,12 +139,17 @@ export function WebsiteShowcase() {
                     ))}
                 </div>
 
-                {/* Load More Button */}
+                {/* Mobile Swipe Stack */}
+                <div className="md:hidden">
+                    <MobileWebsiteStack websites={websites} onSelect={handleCardClick} />
+                </div>
+
+                {/* Load More Button (Desktop Only) */}
                 {visibleCount < websites.length && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
-                        className="flex justify-center mt-12"
+                        className="hidden md:flex justify-center mt-12"
                     >
                         <Button
                             variant="outline"
@@ -257,3 +262,104 @@ export function WebsiteShowcase() {
         </section>
     );
 }
+
+const MobileWebsiteStack = ({ websites, onSelect }: { websites: Website[]; onSelect: (site: Website) => void }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % websites.length);
+        }, 5000); // 5 second delay
+        return () => clearInterval(timer);
+    }, [websites.length]);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleDragEnd = (e: any, { offset }: any) => {
+        const swipeThreshold = 50;
+        if (Math.abs(offset.x) > swipeThreshold) {
+            setCurrentIndex((prev) => (prev + 1) % websites.length);
+        }
+    };
+
+    const visibleCards = 3;
+    const cards = [];
+    for (let i = 0; i < visibleCards; i++) {
+        const index = (currentIndex + i) % websites.length;
+        cards.push({ ...websites[index], stackIndex: i });
+    }
+
+    return (
+        <div className="relative w-full h-[55vh] flex items-center justify-center max-w-sm mx-auto">
+            <AnimatePresence initial={false}>
+                {cards.reverse().map((site) => {
+                    const isTop = site.stackIndex === 0;
+                    return (
+                        <motion.div
+                            key={`${site.url}-${site.stackIndex}-${currentIndex}`}
+                            className="absolute top-0 left-0 w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-card border border-border"
+                            initial={{
+                                scale: 1 - site.stackIndex * 0.05,
+                                y: site.stackIndex * 20,
+                                opacity: 1 - site.stackIndex * 0.2,
+                                zIndex: visibleCards - site.stackIndex
+                            }}
+                            animate={{
+                                scale: 1 - site.stackIndex * 0.05,
+                                y: site.stackIndex * 20,
+                                opacity: 1 - site.stackIndex * 0.2,
+                                zIndex: visibleCards - site.stackIndex
+                            }}
+                            drag={isTop ? "x" : false}
+                            dragConstraints={{ left: 0, right: 0 }}
+                            onDragEnd={isTop ? handleDragEnd : undefined}
+                            whileDrag={{ scale: 1.05, rotate: 2 }}
+                            exit={{ x: 300, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 150, damping: 40 }}
+                            onClick={() => isTop && onSelect(site)}
+                        >
+                            {/* Card Content adapted from 3D Pin but simplified for stack */}
+                            <div className="flex flex-col h-full w-full bg-card">
+                                {/* Browser Toolbar */}
+                                <div className="h-9 bg-muted/50 border-b border-border/50 flex items-center px-4 gap-2 select-none">
+                                    <div className="flex gap-1.5 opacity-50">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                                    </div>
+                                    <div className="ml-2 flex-1 h-6 bg-background/80 rounded-md text-[10px] text-muted-foreground flex items-center px-3 truncate opacity-50 font-mono">
+                                        {new URL(site.url).hostname}
+                                    </div>
+                                </div>
+
+                                {/* Preview */}
+                                <div className="aspect-[4/3] w-full relative bg-white overflow-hidden flex-1">
+                                    <iframe
+                                        src={site.url}
+                                        title={site.title}
+                                        className="w-[200%] h-[200%] absolute top-0 left-0 border-0 transform scale-50 origin-top-left pointer-events-none select-none grayscale"
+                                        scrolling="no"
+                                        loading="lazy"
+                                    />
+                                    {/* Overlay for drag interaction */}
+                                    <div className="absolute inset-0 bg-transparent z-10" />
+                                </div>
+
+                                <div className="p-5 border-t border-border/50 bg-card z-20">
+                                    <h3 className="font-semibold text-lg leading-tight mb-1">{site.title}</h3>
+                                    <p className="text-sm text-muted-foreground line-clamp-1">{site.description}</p>
+                                    <div className="flex flex-wrap gap-1 mt-3 opacity-60">
+                                        {site.techStack.slice(0, 3).map(tech => (
+                                            <span key={tech} className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground">
+                                                {tech}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    );
+                })}
+            </AnimatePresence>
+        </div>
+    );
+};
