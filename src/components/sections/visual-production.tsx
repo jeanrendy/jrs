@@ -342,6 +342,34 @@ const StickyCard002 = ({
         }
     }, [mediaItems, cardStates.length]);
 
+    // Handle Active Video Playback
+    useEffect(() => {
+        cardRefs.current.forEach((card, index) => {
+            if (!card) return;
+            const isActive = index === activeIndex;
+
+            // Handle Native Video
+            const videos = card.querySelectorAll('video');
+            videos.forEach(video => {
+                if (isActive) {
+                    video.play().catch(() => { });
+                } else {
+                    video.pause();
+                }
+            });
+
+            // Handle YouTube
+            const iframe = card.querySelector('iframe');
+            if (iframe && iframe.contentWindow) {
+                if (isActive) {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                } else {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+            }
+        });
+    }, [activeIndex]);
+
     useGSAP(
         () => {
             gsap.registerPlugin(ScrollTrigger);
@@ -388,12 +416,25 @@ const StickyCard002 = ({
                     },
                     onLeave: () => {
                         cardElements.forEach(el => {
-                            el?.querySelectorAll('video').forEach(v => v.pause());
+                            if (!el) return;
+                            el.querySelectorAll('video').forEach(v => v.pause());
+                            const iframe = el.querySelector('iframe');
+                            if (iframe?.contentWindow) {
+                                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                            }
                         });
                     },
                     onEnterBack: () => {
+                        // Resume active video when scrolling back
                         const idx = activeIndexRef.current;
-                        cardElements[idx]?.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
+                        const el = cardElements[idx];
+                        if (el) {
+                            el.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
+                            const iframe = el.querySelector('iframe');
+                            if (iframe?.contentWindow) {
+                                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                            }
+                        }
                     }
                 },
             });
