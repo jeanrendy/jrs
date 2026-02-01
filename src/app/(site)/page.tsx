@@ -6,6 +6,7 @@ import { Hero, CompanyLogo } from "@/components/sections/hero-v2";
 import { CreativeStack } from "@/components/sections/creative-stack";
 import { FeaturesSection } from "@/components/sections/features";
 import { PortfolioShowcase } from "@/components/sections/portfolio-showcase";
+import { WebsiteShowcase } from "@/components/sections/website-showcase";
 import { VisualProductionShowcase } from "@/components/sections/visual-production";
 import { AboutExperience } from "@/components/sections/about-experience";
 import { LatestPosts, BlogContent } from "@/components/sections/latest-posts";
@@ -73,6 +74,9 @@ export default function Home() {
         </div>
         <div id="work" className="snap-start min-h-screen flex flex-col justify-center">
           <PortfolioShowcase />
+        </div>
+        <div className="snap-start min-h-screen flex flex-col justify-center">
+          <WebsiteShowcase />
         </div>
         <div className="snap-start min-h-screen flex flex-col justify-center">
           <VisualProductionShowcase />

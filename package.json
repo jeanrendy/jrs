@@ -20,6 +20,7 @@
     "@react-three/fiber": "^9.5.0",
     "@types/three": "^0.182.0",
     "class-variance-authority": "^0.7.1",
+    "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
     "cobe": "^0.6.5",
     "firebase": "^12.8.0",

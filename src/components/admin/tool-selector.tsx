@@ -2,8 +2,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Upload, X, Loader2, Plus } from "lucide-react";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+import { uploadFile } from "@/lib/upload";
 
 const PRESET_TOOLS = [
     "adobe illustrator.png", "aftereffect.png", "aistudio.png", "antigravity.png",
@@ -42,15 +41,13 @@ export function ToolSelector({ selected, onChange, label }: ToolSelectorProps) {
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || !e.target.files.length || !storage) return;
+        if (!e.target.files || !e.target.files.length) return;
 
         setUploading(true);
         const file = e.target.files[0];
 
         try {
-            const storageRef = ref(storage, `tools/${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(snapshot.ref);
+            const url = await uploadFile(file, "tools");
 
             // Add the new tool to selected immediately
             onChange([...selected, url]);

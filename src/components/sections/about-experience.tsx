@@ -5,295 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { ChevronDown, Briefcase, Calendar, MapPin, ExternalLink } from "lucide-react";
 import { useLenis } from "lenis/react";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-interface Experience {
-    id: string;
-    title: string;
-    company: string;
-    companyUrl?: string;
-    location: string;
-    locationType: string;
-    startDate: string;
-    endDate: string | null;
-    duration: string;
-    description: string[];
-    skills: string[];
-}
-
-const experiences: Experience[] = [
-    {
-        id: "1",
-        title: "Creative Director",
-        company: "DCRM",
-        location: "Australia",
-        locationType: "Remote",
-        startDate: "May 2025",
-        endDate: null,
-        duration: "9 mos",
-        description: [
-            "Leading creative direction for full-time projects",
-            "Managing project coordination and quality control",
-            "Developing creative concepts for social media advertising campaigns",
-            "Overseeing video production from concept to delivery",
-        ],
-        skills: ["Project Management", "Project Coordination", "Creative Direction", "Quality Control", "Creative Concept Design", "Social Media Advertising", "Video Production"],
-    },
-    {
-        id: "2",
-        title: "Product Designer",
-        company: "OneCo",
-        location: "United States",
-        locationType: "Remote",
-        startDate: "Apr 2023",
-        endDate: "Mar 2024",
-        duration: "1 yr",
-        description: [
-            "Designed user experiences using Agile methodologies",
-            "Created mobile and web interface prototypes",
-            "Developed comprehensive design systems",
-            "Delivered branding and identity solutions",
-        ],
-        skills: ["User Experience (UX)", "Agile Methodologies", "User Interface Design", "User Experience Design (UED)", "User Interface Prototyping", "Mobile Interface Design", "Branding & Identity", "Graphic Design", "Product Design", "Software Design", "Web Design", "Wireframing", "Design system"],
-    },
-    {
-        id: "3",
-        title: "Senior UI/UX Designer",
-        company: "yfood Labs",
-        location: "United Kingdom",
-        locationType: "Remote",
-        startDate: "Mar 2022",
-        endDate: "Apr 2023",
-        duration: "1 yr 2 mos",
-        description: [
-            "Applied design thinking to create responsive web experiences",
-            "Led usability testing and user research initiatives",
-            "Managed project timelines and deliverables",
-            "Produced video content and edited promotional materials",
-        ],
-        skills: ["Design Thinking", "Responsive Web Design", "Social Media", "Design", "Wireframing", "Corporate Identity", "Project Management", "Video Editing", "Usability Testing", "Video Production"],
-    },
-    {
-        id: "4",
-        title: "Product Designer",
-        company: "JULO",
-        location: "Indonesia",
-        locationType: "Hybrid",
-        startDate: "Aug 2021",
-        endDate: "Feb 2022",
-        duration: "7 mos",
-        description: [
-            "Created mockups and prototypes for financial products",
-            "Developed and maintained design systems",
-            "Led team collaboration on user interface design",
-            "Applied design thinking to solve complex UX challenges",
-        ],
-        skills: ["User Experience Design (UED)", "Mockups", "Design Thinking", "Responsive Web Design", "Design system", "Wireframing", "Prototyping", "User Interface Design", "Team Leadership"],
-    },
-    {
-        id: "5",
-        title: "Product Designer",
-        company: "Baezeni",
-        location: "Greater Jakarta Area, Indonesia",
-        locationType: "Hybrid",
-        startDate: "May 2019",
-        endDate: "Jul 2021",
-        duration: "2 yrs 3 mos",
-        description: [
-            "Visualization hub catering to multiple markets world-wide",
-            "Created 3D visualizations using Cinema 4D and Blender",
-            "Designed landing pages and responsive web experiences",
-            "Provided visual direction and creative leadership for projects",
-        ],
-        skills: ["Cinema 4D", "User Experience Design (UED)", "Landing Pages", "Visual Direction", "Design Thinking", "Adobe Creative Suite", "Responsive Web Design", "Design system", "Social Media", "3D Visualization", "Design", "Wireframing", "Creative Direction", "Product Design", "Graphic Design", "Project Management", "Blender", "Branding", "User Experience (UX)", "Video Editing", "Adobe Photoshop", "User Interface Design", "Usability Testing", "Web Design", "Video Production", "Team Leadership"],
-    },
-    {
-        id: "6",
-        title: "Sr. UI & UX Designer",
-        company: "Atoma Medical",
-        location: "Jl. Palmerah Barat, Jakarta Selatan",
-        locationType: "On-site",
-        startDate: "Mar 2017",
-        endDate: "Mar 2019",
-        duration: "2 yrs 1 mo",
-        description: [
-            "Led visual direction for medical technology interfaces",
-            "Applied design thinking to healthcare user experiences",
-            "Conducted usability testing for medical applications",
-            "Managed team collaboration and communication",
-        ],
-        skills: ["Visual Direction", "Design Thinking", "Responsive Web Design", "Social Media", "Design", "Wireframing", "Communication", "Adobe Photoshop", "Usability Testing", "Team Leadership"],
-    },
-    {
-        id: "7",
-        title: "UI & UX Designer",
-        company: "Pergikuliner.com",
-        location: "Greater Jakarta Area, Indonesia",
-        locationType: "On-site",
-        startDate: "Jan 2017",
-        endDate: "Mar 2017",
-        duration: "3 mos",
-        description: [
-            "Designed responsive web interfaces for culinary platform",
-            "Created wireframes and user flows",
-            "Collaborated with development team on implementation",
-            "Applied design thinking to improve user experience",
-        ],
-        skills: ["Design Thinking", "Responsive Web Design", "Design", "Wireframing", "Communication"],
-    },
-    {
-        id: "8",
-        title: "Graphic Design & Layout Magazine (freelance)",
-        company: "PT. Gramedia Pustaka Utama",
-        location: "Jakarta",
-        locationType: "Freelance",
-        startDate: "Nov 2013",
-        endDate: "Mar 2017",
-        duration: "3 yrs 5 mos",
-        description: [
-            "Designed graphic layouts for magazine publications",
-            "Created visual content for social media",
-            "Managed multiple freelance projects simultaneously",
-            "Delivered high-quality designs using Adobe Photoshop",
-        ],
-        skills: ["Social Media", "Design", "Adobe Photoshop"],
-    },
-    {
-        id: "9",
-        title: "Creative Director",
-        company: "TEMAN Productions",
-        location: "Jl. H. Syaip Ujung Kav. 7",
-        locationType: "On-site",
-        startDate: "Feb 2016",
-        endDate: "Dec 2016",
-        duration: "11 mos",
-        description: [
-            "TV Program - Movie Making - TVC production",
-            "Digital & Print Ads - Branding & Solution",
-            "Event Organizer and creative direction",
-            "3D modeling and visualization for productions",
-        ],
-        skills: ["Cinema 4D", "Visual Direction", "3D Modeling", "Social Media", "3D Visualization", "Design", "Corporate Identity", "Creative Direction", "Blender", "Video Editing", "Adobe Photoshop", "Product Photography", "Video Production", "Team Leadership"],
-    },
-    {
-        id: "10",
-        title: "Graphic Designer & UI/UX Designer",
-        company: "PT DK Global Indonesia",
-        location: "Gandaria office 8",
-        locationType: "On-site",
-        startDate: "Aug 2014",
-        endDate: "Feb 2016",
-        duration: "1 yr 7 mos",
-        description: [
-            "Design ads, Branding, UI/UX for desktop and apps",
-            "Motion Graphic and Photography",
-            "Created 3D visualizations and models",
-            "Developed corporate identity systems",
-        ],
-        skills: ["Cinema 4D", "Visual Direction", "3D Modeling", "Responsive Web Design", "Social Media", "3D Visualization", "Design", "Corporate Identity", "Creative Direction", "Video Editing", "Adobe Photoshop", "Product Photography", "Video Production", "Team Leadership"],
-    },
-    {
-        id: "11",
-        title: "Graphic Designer - Photographer",
-        company: "FORWARD IB",
-        location: "Greater Jakarta Area, Indonesia",
-        locationType: "Hybrid",
-        startDate: "Jan 2013",
-        endDate: "Feb 2014",
-        duration: "1 yr 2 mos",
-        description: [
-            "Creative agency: Event Organizing - Event Planner",
-            "Yearbook Production - TVC",
-            "Branding Company services",
-            "Photography and visual direction",
-        ],
-        skills: ["Visual Direction", "Design", "Corporate Identity", "Video Editing", "Adobe Photoshop", "Product Photography", "Video Production"],
-    },
-    {
-        id: "12",
-        title: "Head Creative",
-        company: "SMART MEDIA",
-        location: "Jakarta",
-        locationType: "On-site",
-        startDate: "Jun 2012",
-        endDate: "Nov 2013",
-        duration: "1 yr 6 mos",
-        description: [
-            "Creative Art Director - Graphic Design",
-            "Photographer - Video Editor",
-            "Led creative team and direction",
-            "Managed social media and corporate identity projects",
-        ],
-        skills: ["Visual Direction", "Social Media", "Design", "Corporate Identity", "Creative Direction", "Video Editing", "Adobe Photoshop", "Product Photography", "Video Production", "Team Leadership"],
-    },
-    {
-        id: "13",
-        title: "Graphic Designer",
-        company: "PT. MITRA KENCANA UTAMA",
-        location: "Ruko Duta Mas Fatmawati, Jakarta",
-        locationType: "On-site",
-        startDate: "Apr 2011",
-        endDate: "May 2012",
-        duration: "1 yr 2 mos",
-        description: [
-            "Created graphic designs for various projects",
-            "Developed visual materials using Adobe Photoshop",
-            "Supported branding and marketing initiatives",
-            "Delivered design solutions for clients",
-        ],
-        skills: ["Design", "Adobe Photoshop"],
-    },
-    {
-        id: "14",
-        title: "Creative Designer",
-        company: "Rise Org.",
-        location: "Jl. Limau Kebayoran Lama",
-        locationType: "On-site",
-        startDate: "Mar 2009",
-        endDate: "Oct 2011",
-        duration: "2 yrs 8 mos",
-        description: [
-            "Designed creative materials for organization",
-            "Video editing and production",
-            "Created visual content using Adobe Photoshop",
-            "Supported various creative projects",
-        ],
-        skills: ["Design", "Video Editing", "Adobe Photoshop", "Video Production"],
-    },
-    {
-        id: "15",
-        title: "Graphic Designer",
-        company: "Komuni-tas.com",
-        location: "Apartement MGR tanjung duren tower 2",
-        locationType: "Hybrid",
-        startDate: "Feb 2010",
-        endDate: "Apr 2011",
-        duration: "1 yr 3 mos",
-        description: [
-            "Designed graphics for online community platform",
-            "Created visual content and layouts",
-            "Worked remotely and on-site as needed",
-            "Delivered design solutions using Adobe Photoshop",
-        ],
-        skills: ["Design", "Adobe Photoshop"],
-    },
-    {
-        id: "16",
-        title: "Creative Designer",
-        company: "The Brain",
-        location: "Jl. Bangun Reksa, Pd. Pucung, Karang Tengah, Kota Tangerang, Banten",
-        locationType: "On-site",
-        startDate: "Feb 2008",
-        endDate: "May 2009",
-        duration: "1 yr 4 mos",
-        description: [
-            "Created design materials for creative agency",
-            "Video editing and production work",
-            "Developed visual content using Adobe Photoshop",
-            "Supported various creative projects and campaigns",
-        ],
-        skills: ["Design", "Video Editing", "Adobe Photoshop", "Video Production"],
-    },
-];
+import { STATIC_EXPERIENCES, type Experience } from "@/data/experiences";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -319,8 +34,44 @@ const itemVariants = {
 
 export function AboutExperience() {
     const lenis = useLenis();
-    const [openId, setOpenId] = useState<string | null>(experiences[0]?.id || null);
+    // Initialize with static data for SSR/SEO, then hydration matches
+    const [experiences, setExperiences] = useState<Experience[]>(STATIC_EXPERIENCES);
+    const [openId, setOpenId] = useState<string | null>(STATIC_EXPERIENCES[0]?.id || null);
     const [showAll, setShowAll] = useState(false);
+
+    useEffect(() => {
+        const fetchExperiences = async () => {
+            if (!db) return;
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const q = query(collection(db as any, "experiences"), orderBy("createdAt", "desc")); // Assuming createdAt sort? Or custom order
+                // If we want specific order, we might need a sort function or field.
+                // For now, let's fetch and if empty, do nothing (keep static).
+                const snapshot = await getDocs(q);
+                if (!snapshot.empty) {
+                    const data: Experience[] = [];
+                    snapshot.forEach((doc) => {
+                        // Prioritize doc.id to ensure uniqueness and key stability
+                        data.push({ ...doc.data(), id: doc.id } as Experience);
+                    });
+
+                    // Optional: Sort by start date if not ordered?
+                    // Static data is ordered newest first.
+                    // We'll assume DB returns them or we sort them here if needed.
+                    // For now, trust the DB order or Import order.
+                    // We'll re-set state.
+                    setExperiences(data as any);
+
+                    // Update openId if it matches previous default logic, or keep user selection?
+                    // Safe to leave openId as is, or reset if data changes drastically.
+                }
+            } catch (error) {
+                console.error("Error fetching experiences:", error);
+            }
+        };
+
+        fetchExperiences();
+    }, []);
 
     const displayedExperiences = showAll ? experiences : experiences.slice(0, 5);
 

@@ -5,9 +5,21 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Volume2, VolumeX, Maximize, Info, X, Play, Pause } from "lucide-react";
+import { Volume2, VolumeX, Maximize, Play, Pause, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCursor } from "@/context/cursor-context";
+
+// --- Helpers ---
+const getYouTubeId = (url: string) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+};
+
+const getYouTubeThumbnail = (id: string | null) => {
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+};
 
 interface MediaData {
     id: number | string;
@@ -37,16 +49,20 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
     const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolume] = useState(1);
 
+    const ytId = getYouTubeId(video?.src || "");
+    const isYouTube = !!ytId;
+
     useEffect(() => {
-        if (videoRef.current) {
+        if (!isYouTube && videoRef.current) {
             videoRef.current.play().catch(() => setIsPlaying(false));
             videoRef.current.volume = volume;
             videoRef.current.muted = isMuted;
         }
-    }, [video, volume, isMuted]);
+    }, [video, volume, isMuted, isYouTube]);
 
     const togglePlay = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (isYouTube) return;
         if (videoRef.current) {
             if (isPlaying) {
                 videoRef.current.pause();
@@ -59,6 +75,7 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
     };
 
     const toggleMute = () => {
+        if (isYouTube) return;
         if (videoRef.current) {
             const newMuted = !isMuted;
             videoRef.current.muted = newMuted;
@@ -71,6 +88,7 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
     };
 
     const handleVolumeChange = (newVolume: number) => {
+        if (isYouTube) return;
         if (videoRef.current) {
             videoRef.current.volume = newVolume;
             setVolume(newVolume);
@@ -80,6 +98,9 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
     };
 
     if (!video) return null;
+
+    const thumbnailUrl = isYouTube ? getYouTubeThumbnail(ytId) : video.src;
+
     return (
         <AnimatePresence>
             <div className="fixed inset-0 grid place-items-center z-[100] p-4">
@@ -91,12 +112,21 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                     onClick={onClose}
                 />
 
+                {/* Ambient BG for Modal */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-                    <video
-                        src={video.src}
-                        className="w-[80vw] h-[80vh] object-cover blur-[100px] opacity-40 scale-110"
-                        muted loop playsInline autoPlay
-                    />
+                    {isYouTube ? (
+                        <img
+                            src={thumbnailUrl}
+                            className="w-[80vw] h-[80vh] object-cover blur-[100px] opacity-40 scale-110"
+                            alt=""
+                        />
+                    ) : (
+                        <video
+                            src={video.src}
+                            className="w-[80vw] h-[80vh] object-cover blur-[100px] opacity-40 scale-110"
+                            muted loop playsInline autoPlay
+                        />
+                    )}
                 </div>
 
                 <motion.div
@@ -115,32 +145,45 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                     </button>
 
                     <div className="relative h-64 md:h-96 w-full flex-shrink-0 bg-black group relative">
-                        <video
-                            ref={videoRef}
-                            src={video.src}
-                            className="w-full h-full object-cover"
-                            muted={isMuted}
-                            loop
-                            playsInline
-                            onClick={togglePlay}
-                        />
-                        <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button
-                                onClick={togglePlay}
-                                className="text-white hover:text-white/80 transition-colors"
-                            >
-                                {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                            </button>
-
-                            <VolumeControl
-                                isMuted={isMuted}
-                                volume={volume}
-                                onToggleMute={toggleMute}
-                                onVolumeChange={handleVolumeChange}
+                        {isYouTube ? (
+                            <iframe
+                                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                                className="w-full h-full"
+                                title="YouTube video player"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
                             />
-                        </div>
+                        ) : (
+                            <>
+                                <video
+                                    ref={videoRef}
+                                    src={video.src}
+                                    className="w-full h-full object-cover"
+                                    muted={isMuted}
+                                    loop
+                                    playsInline
+                                    onClick={togglePlay}
+                                />
+                                <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <button
+                                        onClick={togglePlay}
+                                        className="text-white hover:text-white/80 transition-colors"
+                                    >
+                                        {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                                    </button>
+
+                                    <VolumeControl
+                                        isMuted={isMuted}
+                                        volume={volume}
+                                        onToggleMute={toggleMute}
+                                        onVolumeChange={handleVolumeChange}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <div className="flex flex-col p-6 md:p-8 overflow-y-auto bg-[#111111] text-white h-full">
@@ -164,11 +207,6 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium cursor-none"
                                     >
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                                            <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
                                         Case Study
                                     </a>
                                 )}
@@ -179,11 +217,6 @@ const VideoDetailsModal = ({ video, onClose }: { video: MediaData | null, onClos
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#CCFF00] text-black hover:bg-[#b3e600] transition-colors text-sm font-medium cursor-none"
                                     >
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            <path d="M2 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
                                         View Live
                                     </a>
                                 )}
@@ -297,15 +330,11 @@ const StickyCard002 = ({
     const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
     const { setCursorType } = useCursor();
 
-    // Independent state for each card
     const [cardStates, setCardStates] = useState<CardState[]>([]);
-
     const activeIndexRef = useRef(0);
     const [activeIndex, setActiveIndex] = useState(0);
     const [selectedVideo, setSelectedVideo] = useState<MediaData | null>(null);
-    const [fullscreenVideo, setFullscreenVideo] = useState<MediaData | null>(null);
 
-    // Initialize states when items load
     useEffect(() => {
         if (mediaItems.length > 0 && cardStates.length !== mediaItems.length) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -313,32 +342,15 @@ const StickyCard002 = ({
         }
     }, [mediaItems, cardStates.length]);
 
-    // Pause main videos when modal or fullscreen is open
-    useEffect(() => {
-        const cardElements = cardRefs.current?.filter(el => el !== null);
-        if (!cardElements) return;
-
-        if (selectedVideo || fullscreenVideo) {
-            // Pause all
-            cardElements.forEach(el => el?.querySelectorAll('video').forEach(v => v.pause()));
-        } else {
-            // Resume active
-            const activeEl = cardElements[activeIndex];
-            activeEl?.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
-        }
-    }, [selectedVideo, fullscreenVideo, activeIndex]);
-
     useGSAP(
         () => {
             gsap.registerPlugin(ScrollTrigger);
 
-            // Clean up filters
             const cardElements = cardRefs.current.filter(el => el !== null);
             const totalCards = cardElements.length;
 
             if (totalCards === 0) return;
 
-            // Set initial state
             cardElements.forEach((el, index) => {
                 if (index === 0) {
                     gsap.set(el, { y: "0%", scale: 1, rotation: 0 });
@@ -347,7 +359,7 @@ const StickyCard002 = ({
                 }
             });
 
-            // Ensure first video plays
+            // Auto-play first if video (not YT)
             const firstVideo = cardElements[0].querySelector('video');
             if (firstVideo) {
                 firstVideo.play().catch(() => { });
@@ -366,81 +378,25 @@ const StickyCard002 = ({
                             el?.querySelectorAll('video').forEach(v => v.pause());
                         });
                     },
-                    onLeaveBack: () => {
-                        cardElements.forEach(el => {
-                            el?.querySelectorAll('video').forEach(v => v.pause());
-                        });
-                    },
-                    onEnter: () => {
-                        const idx = activeIndexRef.current;
-                        cardElements[idx]?.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
-                    },
                     onEnterBack: () => {
                         const idx = activeIndexRef.current;
                         cardElements[idx]?.querySelectorAll('video').forEach(v => v.play().catch(() => { }));
-                    },
-                    onUpdate: (self) => {
-                        const progress = self.progress;
-                        const rawIndex = progress * (totalCards - 1);
-                        const newIndex = Math.round(rawIndex);
-
-                        if (newIndex !== activeIndexRef.current && newIndex >= 0 && newIndex < totalCards) {
-                            activeIndexRef.current = newIndex;
-                            setActiveIndex(newIndex);
-                            cardElements.forEach((el, idx) => {
-                                const videos = el.querySelectorAll('video');
-                                if (videos.length > 0) {
-                                    if (idx === newIndex) {
-                                        videos.forEach(v => v.play().catch(() => { }));
-                                    } else {
-                                        videos.forEach(v => v.pause());
-                                    }
-                                }
-                            });
-                        }
                     }
                 },
             });
 
+            // Scroll Animation Logic
             for (let i = 0; i < totalCards - 1; i++) {
                 const currentCard = cardElements[i];
                 const nextCard = cardElements[i + 1];
                 const position = i;
                 const currentInner = currentCard.querySelector('.visual-card');
 
-                scrollTimeline.to(
-                    currentCard,
-                    {
-                        scale: 0.7,
-                        rotation: 5,
-                        opacity: 0.6,
-                        duration: 1,
-                        ease: "none",
-                    },
-                    position,
-                );
-
+                scrollTimeline.to(currentCard, { scale: 0.7, rotation: 5, opacity: 0.6, duration: 1, ease: "none" }, position);
                 if (currentInner) {
-                    scrollTimeline.to(
-                        currentInner,
-                        {
-                            boxShadow: "none",
-                            duration: 1,
-                            ease: "none",
-                        },
-                        position
-                    );
+                    scrollTimeline.to(currentInner, { boxShadow: "none", duration: 1, ease: "none" }, position);
                 }
-
-                scrollTimeline.to(
-                    nextCard,
-                    {
-                        y: "0%",
-                        duration: 1,
-                        ease: "none",
-                    },
-                    position,
-                );
+                scrollTimeline.to(nextCard, { y: "0%", duration: 1, ease: "none" }, position);
             }
 
             ScrollTrigger.refresh();
@@ -451,19 +407,6 @@ const StickyCard002 = ({
         },
         { scope: container, dependencies: [mediaItems] }
     );
-
-    const toggleFullscreen = (e: React.MouseEvent, index: number) => {
-        e.stopPropagation();
-        const cardWrapper = cardRefs.current[index];
-        const visualCard = cardWrapper?.querySelector('.visual-card');
-        if (visualCard) {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                visualCard.requestFullscreen().catch(err => console.error(err));
-            }
-        }
-    };
 
     const togglePlay = (e: React.MouseEvent, index: number) => {
         e.stopPropagation();
@@ -481,9 +424,6 @@ const StickyCard002 = ({
             next[index] = { ...next[index], ...newState };
             return next;
         });
-        // Apply to DOM if needed for mutable props (volume/muted), 
-        // but 'playing' is read-only on DOM (use play()/pause() methods). 
-        // Listeners sync state.
         const card = cardRefs.current[index];
         const videos = card?.querySelectorAll('video');
         videos?.forEach(video => {
@@ -491,23 +431,6 @@ const StickyCard002 = ({
             if (newState.volume !== undefined) video.volume = newState.volume;
         });
     };
-
-    const handleGlobalToggle = () => {
-        const activeIdx = activeIndexRef.current;
-        const currentActiveMuted = cardStates[activeIdx]?.muted ?? true;
-        const targetMuted = !currentActiveMuted;
-
-        setCardStates(prev => prev.map(s => ({ ...s, muted: targetMuted })));
-
-        cardRefs.current.forEach(card => {
-            card?.querySelectorAll('video').forEach(video => {
-                video.muted = targetMuted;
-            });
-        });
-    };
-
-    // Helper to get active mute state for the global button label
-    const activeMuted = cardStates[activeIndex]?.muted ?? true;
 
     return (
         <>
@@ -518,11 +441,7 @@ const StickyCard002 = ({
                 onMouseLeave={() => setCursorType('default')}
             >
                 <div className="sticky-cards-visual relative flex h-[100dvh] w-full items-center justify-center overflow-hidden p-3 lg:p-8">
-
-
-                    {/* Main Stack Container - fixed height to viewport */}
                     <div className="relative w-full h-full max-w-7xl flex items-center justify-center pt-24 md:pt-0">
-
                         <div className="absolute top-24 md:top-8 left-6 z-40 flex flex-col items-center md:items-start text-center md:text-left">
                             <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-black dark:text-white">Visual Productions</h2>
                             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
@@ -532,6 +451,8 @@ const StickyCard002 = ({
 
                         {mediaItems.map((item, i) => {
                             const state = cardStates[i] || { muted: true, volume: 1, playing: false };
+                            const ytId = getYouTubeId(item.type === 'video' ? item.src : "");
+                            const isYouTube = !!ytId;
 
                             return (
                                 <div
@@ -540,25 +461,58 @@ const StickyCard002 = ({
                                     ref={(el) => { cardRefs.current[i] = el; }}
                                 >
                                     <div className="relative">
-                                        {/* THE VISUAL CARD - Adapts to content size */}
                                         <div
                                             className="visual-card relative max-h-[60dvh] md:max-h-[85dvh] max-w-full shadow-[0_35px_60px_-15px_rgba(0,0,0,0.8)] rounded-3xl overflow-hidden group bg-neutral-900 mx-4 z-10"
                                             onMouseEnter={() => setCursorType('video')}
                                             onMouseLeave={() => setCursorType('small')}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedVideo(item);
+                                            }}
                                         >
-
                                             {item.type === "video" ? (
-                                                <video
-                                                    src={item.src}
-                                                    className="max-h-[60dvh] md:max-h-[85dvh] w-auto max-w-full object-contain cursor-pointer"
-                                                    muted={state.muted}
-                                                    loop
-                                                    playsInline
-                                                    suppressHydrationWarning
-                                                    onPlay={() => updateCardState(i, { playing: true })}
-                                                    onPause={() => updateCardState(i, { playing: false })}
-                                                    onClick={(e) => { e.stopPropagation(); setSelectedVideo(item); }}
-                                                />
+                                                isYouTube ? (
+                                                    // YouTube: Play Iframe if Active, else Thumbnail
+                                                    <div className="relative w-[90vw] md:w-[75vw] max-w-[1200px] aspect-video flex items-center justify-center bg-black cursor-pointer overflow-hidden">
+                                                        {i === activeIndex ? (
+                                                            <div className="w-full h-full pointer-events-none select-none">
+                                                                <iframe
+                                                                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&showinfo=0&modestbranding=1&iv_load_policy=3&rel=0&disablekb=1&fs=0`}
+                                                                    className="w-[100%] h-[100%] object-cover scale-[1.35]"
+                                                                    style={{ pointerEvents: 'none' }}
+                                                                    title="YouTube background"
+                                                                    frameBorder="0"
+                                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="relative w-full h-full flex items-center justify-center">
+                                                                <img
+                                                                    src={getYouTubeThumbnail(ytId)}
+                                                                    className="w-full h-full object-cover opacity-80"
+                                                                    alt={item.alt || ""}
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center">
+                                                                        <Play className="w-8 h-8 text-white/50 fill-current" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    // Native Video
+                                                    <video
+                                                        src={item.src}
+                                                        className="max-h-[60dvh] md:max-h-[85dvh] w-auto max-w-full object-contain cursor-pointer"
+                                                        muted={state.muted}
+                                                        loop
+                                                        playsInline
+                                                        suppressHydrationWarning
+                                                        onPlay={() => updateCardState(i, { playing: true })}
+                                                        onPause={() => updateCardState(i, { playing: false })}
+                                                    />
+                                                )
                                             ) : (
                                                 <img
                                                     src={item.src}
@@ -567,46 +521,45 @@ const StickyCard002 = ({
                                                 />
                                             )}
 
-                                            {/* Controls Overlay */}
-                                            <div
-                                                className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                                                onMouseEnter={(e) => { e.stopPropagation(); setCursorType('small'); }}
-                                                onMouseLeave={() => setCursorType('video')}
-                                            >
-                                                {/* Right Controls: Play/Pause, Volume, Fullscreen */}
-                                                <div className="flex items-center gap-2 pointer-events-auto">
-                                                    {item.type === 'video' && (
-                                                        <>
-                                                            <button
-                                                                onClick={(e) => togglePlay(e, i)}
-                                                                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
-                                                                title={state.playing ? "Pause" : "Play"}
-                                                            >
-                                                                {state.playing ? <Pause size={18} /> : <Play size={18} />}
-                                                            </button>
+                                            {/* Controls Overlay (Only for Native Video) */}
+                                            {!isYouTube && item.type === "video" && (
+                                                <div
+                                                    className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                                                    onMouseEnter={(e) => { e.stopPropagation(); setCursorType('small'); }}
+                                                    onMouseLeave={() => setCursorType('video')}
+                                                >
+                                                    <div className="flex items-center gap-2 pointer-events-auto">
+                                                        <button
+                                                            onClick={(e) => togglePlay(e, i)}
+                                                            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
+                                                            title={state.playing ? "Pause" : "Play"}
+                                                        >
+                                                            {state.playing ? <Pause size={18} /> : <Play size={18} />}
+                                                        </button>
 
-                                                            <VolumeControl
-                                                                isMuted={state.muted}
-                                                                volume={state.volume}
-                                                                onToggleMute={() => updateCardState(i, { muted: !state.muted })}
-                                                                onVolumeChange={(val) => updateCardState(i, { volume: val, muted: val === 0 })}
-                                                            />
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); setFullscreenVideo(item); }}
-                                                                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
-                                                                title="Fullscreen"
-                                                            >
-                                                                <Maximize size={18} />
-                                                            </button>
-                                                        </>
-                                                    )}
+                                                        <VolumeControl
+                                                            isMuted={state.muted}
+                                                            volume={state.volume}
+                                                            onToggleMute={() => updateCardState(i, { muted: !state.muted })}
+                                                            onVolumeChange={(val) => updateCardState(i, { volume: val, muted: val === 0 })}
+                                                        />
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setSelectedVideo(item); }}
+                                                            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
+                                                            title="Fullscreen"
+                                                        >
+                                                            <Maximize size={18} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </div>
 
-                                        {/* AMBIENT GLOW BACKDROP */}
+                                        {/* Ambient Glow */}
                                         <div className={cn("absolute inset-0 z-[-1] blur-[40px] scale-[1.02] pointer-events-none transition-all duration-700 mx-4", i === activeIndex ? "opacity-60" : "opacity-0")}>
-                                            {item.type === 'video' ? (
+                                            {isYouTube ? (
+                                                <img src={getYouTubeThumbnail(ytId)} className="w-full h-full object-cover rounded-3xl" alt="" />
+                                            ) : item.type === 'video' ? (
                                                 <video
                                                     src={item.src}
                                                     className="w-full h-full object-cover rounded-3xl"
@@ -622,15 +575,6 @@ const StickyCard002 = ({
                                 </div>
                             );
                         })}
-
-                        {/* Global Floating Audio Toggle */}
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleGlobalToggle(); }}
-                            className="absolute bottom-24 md:bottom-auto top-auto md:top-8 right-6 z-[60] p-4 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white hover:bg-black/70 transition-colors shadow-2xl cursor-pointer pointer-events-auto"
-                            aria-label="Toggle All Videos Audio"
-                        >
-                            {activeMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
-                        </button>
                     </div>
                 </div>
             </div >
@@ -638,46 +582,6 @@ const StickyCard002 = ({
             {selectedVideo && (
                 <VideoDetailsModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
             )}
-
-            {/* 4. Render Simple Fullscreen Overlay */}
-            <AnimatePresence>
-                {fullscreenVideo && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl" onClick={() => setFullscreenVideo(null)}>
-                        {/* Ambient Glow */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-                            <video
-                                src={fullscreenVideo.src}
-                                className="w-[100vw] h-[100vh] object-cover blur-[150px] opacity-40 scale-125"
-                                muted loop playsInline autoPlay
-                            />
-                        </div>
-
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="relative z-10 w-full max-w-[90vw] aspect-video max-h-[90vh] rounded-xl overflow-hidden shadow-2xl bg-black"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <video
-                                src={fullscreenVideo.src}
-                                className="w-full h-full object-contain"
-                                autoPlay
-                                controls
-                                controlsList="nodownload"
-                                onContextMenu={(e) => e.preventDefault()}
-                            />
-                            <button
-                                className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full z-50 backdrop-blur-md transition-colors"
-                                onClick={(e) => { e.stopPropagation(); setFullscreenVideo(null); }}
-                            >
-                                <X size={24} />
-                            </button>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </>
     );
 };
@@ -688,9 +592,10 @@ export const VisualProductionShowcase = () => {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
+                // Ensure Firebase is loaded client-side if detecting standard
                 let firestoreVideos: MediaData[] = [];
                 const { db } = await import("@/lib/firebase");
-                const { collection, getDocs, query, orderBy } = await import("firebase/firestore");
+                const { collection, getDocs, query, orderBy, Firestore } = await import("firebase/firestore");
 
                 if (db) {
                     const q = query(collection(db, "visual_productions"), orderBy("createdAt", "desc"));
@@ -700,7 +605,7 @@ export const VisualProductionShowcase = () => {
                             const data = doc.data();
                             return {
                                 id: doc.id,
-                                src: data.src,
+                                src: data.src || data.thumbnailUrl, // Fallback
                                 type: data.type as "video" | "image",
                                 alt: data.code || data.alt,
                                 title: data.title,
@@ -723,6 +628,7 @@ export const VisualProductionShowcase = () => {
                     return;
                 }
 
+                // Fallback to API if DB is empty or fails
                 const response = await fetch('/api/visual-production-videos');
                 const data = await response.json();
                 if (Array.isArray(data)) {
@@ -746,7 +652,6 @@ export const VisualProductionShowcase = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
             >
-
                 <StickyCard002 mediaItems={videos} />
             </motion.div>
         </section>

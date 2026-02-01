@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Upload, X, Loader2, Star, Check, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import { uploadFile } from "@/lib/upload";
 
 interface MediaManagerProps {
     thumbnailUrl?: string;
@@ -27,21 +26,19 @@ export function MediaManager({
     const [uploading, setUploading] = useState(false);
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || !e.target.files.length || !storage) return;
+        if (!e.target.files || !e.target.files.length) return;
 
         setUploading(true);
         const files = Array.from(e.target.files);
         const newUrls: string[] = [];
 
-        // Create folder path: projects/{projectCode}/{type}/
-        const sanitizedCode = projectCode.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
-        const folderPath = `projects/${sanitizedCode}/${projectType}`;
-
         try {
             for (const file of files) {
-                const storageRef = ref(storage, `${folderPath}/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(snapshot.ref);
+                // Determine folder path hint (though Cloudinary preset might override this)
+                const sanitizedCode = projectCode.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+                const folderPath = `projects/${sanitizedCode}/${projectType}`;
+
+                const url = await uploadFile(file, folderPath);
                 newUrls.push(url);
             }
 

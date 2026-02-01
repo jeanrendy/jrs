@@ -2,14 +2,14 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { doc, getDoc, updateDoc, Timestamp, collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, Timestamp, collection, addDoc, Firestore } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import RichTextEditor from "@/components/ui/rich-text-editor";
-import { Loader2, ArrowLeft, Save } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Link as LinkIcon, Upload } from "lucide-react";
 import { MultiSelectBadges } from "@/components/admin/multi-select-badges";
 import { ToolSelector } from "@/components/admin/tool-selector";
 import { MediaManager } from "@/components/admin/media-manager";
@@ -94,7 +94,7 @@ function ProjectEditorContent() {
         liveWebsiteUrl: "",
         thumbnailUrl: "",
         galleryUrls: [],
-        type: "image",
+        type: activeTab === "visuals" ? "video" : "image", // Default based on tab
         alt: "",
         description: "",
         content: ""
@@ -104,8 +104,7 @@ function ProjectEditorContent() {
         if (!isNew && id && db) {
             const fetchProject = async () => {
                 try {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const docRef = doc(db as any, collectionName, id);
+                    const docRef = doc(db as Firestore, collectionName, id);
                     const docSnap = await getDoc(docRef);
 
                     if (docSnap.exists()) {
@@ -124,7 +123,7 @@ function ProjectEditorContent() {
                             liveWebsiteUrl: data.liveWebsiteUrl || "",
                             thumbnailUrl: data.thumbnailUrl || data.src || "",
                             galleryUrls: data.galleryUrls || [],
-                            type: data.type || "image",
+                            type: data.type || (activeTab === "visuals" ? "video" : "image"),
                             alt: data.alt || "",
                             description: data.description || "",
                             content: data.content || "",
@@ -144,7 +143,7 @@ function ProjectEditorContent() {
             };
             fetchProject();
         }
-    }, [id, isNew, collectionName, router]);
+    }, [id, isNew, collectionName, router, activeTab]);
 
     const handleSave = async () => {
         if (!db) return;
@@ -171,7 +170,7 @@ function ProjectEditorContent() {
                 // Legacy / Compatibility fields
                 code: project.title,          // Keep code synced with title for now
                 category: project.brandCategories[0] || "", // Primary category for old views
-                src: project.thumbnailUrl,    // Main image
+                src: project.thumbnailUrl,    // Main image/video
 
                 // Content
                 type: project.type,
@@ -184,11 +183,9 @@ function ProjectEditorContent() {
             };
 
             if (isNew) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await addDoc(collection(db as any, collectionName), dataToSave);
+                await addDoc(collection(db as Firestore, collectionName), dataToSave);
             } else {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await updateDoc(doc(db as any, collectionName, id!), dataToSave);
+                await updateDoc(doc(db as Firestore, collectionName, id!), dataToSave);
             }
 
             router.push("/admin/portfolio");
@@ -372,7 +369,60 @@ function ProjectEditorContent() {
                             <CardDescription className="text-gray-500">Manage cover image and gallery.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
+
+                            {/* Media Type Selector */}
                             <div className="space-y-2">
+                                <Label className="text-gray-900">Media Type</Label>
+                                <select
+                                    value={project.type || "image"}
+                                    onChange={(e) => setProject(p => ({ ...p, type: e.target.value as "video" | "image" }))}
+                                    className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white text-black text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                                >
+                                    <option value="image">Image (Portfolio)</option>
+                                    <option value="video">Video (Visual Production)</option>
+                                </select>
+                            </div>
+
+                            {/* Manual URL Input / Embed Code */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-gray-900 flex items-center gap-1.5"><LinkIcon className="w-4 h-4" /> Source URL / Embed Code</Label>
+                                    <span className="text-xs text-muted-foreground">Direct link or &lt;iframe&gt; code</span>
+                                </div>
+                                <Input
+                                    value={project.thumbnailUrl}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        // Auto-extract src if user pastes generic iframe code
+                                        if (val.includes("<iframe")) {
+                                            const match = val.match(/src=["'](.*?)["']/);
+                                            if (match && match[1]) {
+                                                setProject(p => ({ ...p, thumbnailUrl: match[1] }));
+                                                return;
+                                            }
+                                        }
+                                        setProject(p => ({ ...p, thumbnailUrl: val }));
+                                    }}
+                                    placeholder={project.type === 'video' ? "https://example.com/video.mp4 OR <iframe src='...'>" : "https://example.com/image.jpg"}
+                                    className="bg-white border-gray-200 text-black placeholder:text-gray-400 font-mono text-xs"
+                                />
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-2">
+                                <Label className="text-gray-900 flex items-center gap-1.5"><Upload className="w-4 h-4" /> / Local Upload</Label>
+                                <MediaManager
+                                    thumbnailUrl={project.thumbnailUrl}
+                                    galleryUrls={project.galleryUrls}
+                                    onThumbnailChange={(url) => setProject(p => ({ ...p, thumbnailUrl: url }))}
+                                    onGalleryChange={(urls) => setProject(p => ({ ...p, galleryUrls: urls }))}
+                                    projectCode={project.title || "untitled"}
+                                    projectType={activeTab === "visuals" ? "video" : "portfolio"}
+                                />
+                            </div>
+
+                            <div className="space-y-2 pt-4 border-t border-gray-100">
                                 <Label className="text-gray-900">Alt Text (Accessibility)</Label>
                                 <Input
                                     value={project.alt || ""}
@@ -381,21 +431,16 @@ function ProjectEditorContent() {
                                     className="bg-white border-gray-200 text-black placeholder:text-gray-400"
                                 />
                             </div>
-
-                            <MediaManager
-                                thumbnailUrl={project.thumbnailUrl}
-                                galleryUrls={project.galleryUrls}
-                                onThumbnailChange={(url) => setProject(p => ({ ...p, thumbnailUrl: url }))}
-                                onGalleryChange={(urls) => setProject(p => ({ ...p, galleryUrls: urls }))}
-                                projectCode={project.title || "untitled"}
-                                projectType={activeTab === "visuals" ? "video" : "portfolio"}
-                            />
                         </CardContent>
                     </Card>
                 </div>
             </div>
         </div>
     );
+}
+
+function Separator() {
+    return <div className="h-px bg-gray-100 w-full my-4" />;
 }
 
 export default function ProjectEditor() {

@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, PenTool, Image as ImageIcon, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, PenTool, Image as ImageIcon, Briefcase, Settings, LogOut, Globe } from "lucide-react";
 
 const navItems = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Landing Page", href: "/admin/landing", icon: PenTool },
     { name: "Portfolio", href: "/admin/portfolio", icon: ImageIcon },
+    { name: "Experience", href: "/admin/experience", icon: Briefcase },
+    { name: "Websites", href: "/admin/website", icon: Globe },
     { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
