@@ -373,6 +373,19 @@ const StickyCard002 = ({
                     pin: true,
                     scrub: 0.5,
                     pinSpacing: true,
+                    onUpdate: (self) => {
+                        // Calculate active index based on scroll progress
+                        const progress = self.progress;
+                        const newIndex = Math.min(
+                            Math.round(progress * (totalCards - 1)),
+                            totalCards - 1
+                        );
+
+                        if (activeIndexRef.current !== newIndex) {
+                            activeIndexRef.current = newIndex;
+                            setActiveIndex(newIndex);
+                        }
+                    },
                     onLeave: () => {
                         cardElements.forEach(el => {
                             el?.querySelectorAll('video').forEach(v => v.pause());
@@ -389,14 +402,17 @@ const StickyCard002 = ({
             for (let i = 0; i < totalCards - 1; i++) {
                 const currentCard = cardElements[i];
                 const nextCard = cardElements[i + 1];
-                const position = i;
-                const currentInner = currentCard.querySelector('.visual-card');
+                const position = i / (totalCards - 1); // Normalize position to 0-1 for timeline if needed, but 'i' works with 'end' calc
+                // Actually, standard timeline distribution:
+                // We want the transitions to happen sequentially.
+                // The duration logic in previous code was 'duration: 1', implying relative timing.
 
-                scrollTimeline.to(currentCard, { scale: 0.7, rotation: 5, opacity: 0.6, duration: 1, ease: "none" }, position);
+                scrollTimeline.to(currentCard, { scale: 0.7, rotation: 5, opacity: 0.6, duration: 1, ease: "none" }, i);
+                const currentInner = currentCard.querySelector('.visual-card');
                 if (currentInner) {
-                    scrollTimeline.to(currentInner, { boxShadow: "none", duration: 1, ease: "none" }, position);
+                    scrollTimeline.to(currentInner, { boxShadow: "none", duration: 1, ease: "none" }, i);
                 }
-                scrollTimeline.to(nextCard, { y: "0%", duration: 1, ease: "none" }, position);
+                scrollTimeline.to(nextCard, { y: "0%", duration: 1, ease: "none" }, i);
             }
 
             ScrollTrigger.refresh();
