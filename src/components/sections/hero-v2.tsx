@@ -44,7 +44,7 @@ export function Hero({ companyLogos = [], content, onFieldClick }: HeroProps) {
     return (
         <section
             ref={containerRef}
-            className="relative w-full min-h-[100dvh] lg:h-[100dvh] flex flex-col justify-between pt-20 overflow-x-hidden lg:overflow-hidden bg-background"
+            className="relative w-screen h-[100dvh] flex flex-col justify-between pt-20 overflow-hidden bg-background"
         >
             {/* Dashed Center Fade Grid Background */}
             <div className="absolute inset-0 z-0 overflow-hidden">
