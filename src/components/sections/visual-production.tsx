@@ -502,9 +502,9 @@ const StickyCard002 = ({
             >
                 <div className="sticky-cards-visual relative flex h-[100dvh] w-full items-center justify-center overflow-hidden p-3 lg:p-8">
                     <div className="relative w-full h-full max-w-7xl flex items-center justify-center pt-24 md:pt-0">
-                        <div className="absolute top-24 md:top-8 left-6 z-40 flex flex-col items-center md:items-start text-center md:text-left">
+                        <div className="absolute top-24 md:top-8 left-0 w-full z-40 flex flex-col items-center md:items-start text-center md:text-left px-6">
                             <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-black dark:text-white">Video Productions</h2>
-                            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
+                            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto md:mx-0">
                                 Motion graphics, video editing, and visual storytelling.
                             </p>
                         </div>
