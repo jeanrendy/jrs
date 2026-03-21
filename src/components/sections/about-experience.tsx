@@ -32,11 +32,35 @@ const itemVariants = {
     },
 } as const;
 
+const parseDateForSort = (dateStr: string | null) => {
+    if (!dateStr || dateStr.toLowerCase() === "present") return new Date().getTime();
+    const time = new Date(dateStr).getTime();
+    return isNaN(time) ? 0 : time;
+};
+
+const sortExperiences = (exps: Experience[]) => {
+    return [...exps].sort((a, b) => {
+        const aStart = parseDateForSort(a.startDate);
+        const bStart = parseDateForSort(b.startDate);
+        const aEnd = parseDateForSort(a.endDate);
+        const bEnd = parseDateForSort(b.endDate);
+
+        // Sort by start date (newest first)
+        if (bStart !== aStart) {
+            return bStart - aStart;
+        }
+        // If start dates are the same, order by end date (newest first)
+        return bEnd - aEnd;
+    });
+};
+
+const sortedStaticExperiences = sortExperiences(STATIC_EXPERIENCES);
+
 export function AboutExperience() {
     const lenis = useLenis();
     // Initialize with static data for SSR/SEO, then hydration matches
-    const [experiences, setExperiences] = useState<Experience[]>(STATIC_EXPERIENCES);
-    const [openId, setOpenId] = useState<string | null>(STATIC_EXPERIENCES[0]?.id || null);
+    const [experiences, setExperiences] = useState<Experience[]>(sortedStaticExperiences);
+    const [openId, setOpenId] = useState<string | null>(sortedStaticExperiences[0]?.id || null);
     const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
@@ -56,11 +80,11 @@ export function AboutExperience() {
                     });
 
                     // Optional: Sort by start date if not ordered?
-                    // Static data is ordered newest first.
-                    // We'll assume DB returns them or we sort them here if needed.
-                    // For now, trust the DB order or Import order.
+                    // Expected to sort locally using the date strings regardless of DB order
+                    const sortedFetchedData = sortExperiences(data);
+
                     // We'll re-set state.
-                    setExperiences(data as any);
+                    setExperiences(sortedFetchedData as any);
 
                     // Update openId if it matches previous default logic, or keep user selection?
                     // Safe to leave openId as is, or reset if data changes drastically.
