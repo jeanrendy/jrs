@@ -27,20 +27,12 @@ export const STATIC_WEBSITES: Website[] = [
         order: 1
     },
     {
-        title: "Barbearia App",
-        url: "https://barbearia-159993298310.us-west1.run.app/",
-        description: "Barber Shop Application",
-        techStack: ["Flutter", "Firebase", "Google Cloud", "Dart"],
-        year: "2023",
-        order: 2
-    },
-    {
         title: "ProdigyBuild",
         url: "https://prodigybuild.com/",
         description: "AI-Powered Construction Platform",
         techStack: ["React", "Python", "AWS", "TensorFlow"],
         year: "2023",
-        order: 3
+        order: 2
     },
     {
         title: "YFood",
@@ -48,7 +40,7 @@ export const STATIC_WEBSITES: Website[] = [
         description: "Smart Food Solutions",
         techStack: ["Shopify", "Liquid", "JavaScript", "Sass"],
         year: "2022",
-        order: 4
+        order: 3
     },
     {
         title: "Seabuddy",
@@ -56,15 +48,7 @@ export const STATIC_WEBSITES: Website[] = [
         description: "Ocean Conservation Platform",
         techStack: ["Vue.js", "Nuxt", "Supabase", "Tailwind"],
         year: "2024",
-        order: 5
-    },
-    {
-        title: "Plum",
-        url: "https://www.plum.io/",
-        description: "HR Tech Platform",
-        techStack: ["Angular", "TypeScript", "Node.js", "RxJS"],
-        year: "2022",
-        order: 6
+        order: 4
     },
     {
         title: "Atelier Jolie",
@@ -72,13 +56,29 @@ export const STATIC_WEBSITES: Website[] = [
         description: "Fashion Brand",
         techStack: ["Next.js", "Contentful", "Vercel", "GSAP"],
         year: "2023",
-        order: 7
+        order: 5
     },
     {
         title: "Resimate",
         url: "https://www.resimate.build/",
         description: "Construction Tech",
         techStack: ["React", "Express", "PostgreSQL", "Docker"],
+        year: "2023",
+        order: 6
+    },
+    {
+        title: "Plum",
+        url: "https://www.plum.io/",
+        description: "HR Tech Platform",
+        techStack: ["Angular", "TypeScript", "Node.js", "RxJS"],
+        year: "2022",
+        order: 7
+    },
+    {
+        title: "Barbearia App",
+        url: "https://barbearia-159993298310.us-west1.run.app/",
+        description: "Barber Shop Application",
+        techStack: ["Flutter", "Firebase", "Google Cloud", "Dart"],
         year: "2023",
         order: 8
     }

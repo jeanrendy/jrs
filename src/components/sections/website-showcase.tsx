@@ -26,8 +26,15 @@ export function WebsiteShowcase() {
                 if (!snapshot.empty) {
                     const data: Website[] = [];
                     snapshot.forEach((doc) => {
-                        data.push({ ...doc.data(), id: doc.id } as Website);
+                        const dbWebsite = { ...doc.data(), id: doc.id } as Website;
+                        const staticRef = STATIC_WEBSITES.find(s => s.title === dbWebsite.title);
+                        if (staticRef !== undefined) {
+                            dbWebsite.order = staticRef.order;
+                        }
+                        data.push(dbWebsite);
                     });
+                    
+                    data.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
                     setWebsites(data);
                 }
             } catch (error) {
