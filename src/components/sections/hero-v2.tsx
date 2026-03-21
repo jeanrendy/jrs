@@ -167,24 +167,14 @@ export function Hero({ companyLogos = [], content, onFieldClick }: HeroProps) {
                                 hidden: { opacity: 0, y: 20 },
                                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
                             }}
-                            className={`text-center text-lg md:text-[22px] font-medium max-w-4xl mx-auto leading-relaxed md:leading-loose opacity-90 tracking-wide text-pretty whitespace-normal break-words [&_*]:whitespace-normal [&_*]:inline [&_p]:inline ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-2 rounded transition-all" : ""}`}
+                            className={`text-left md:text-center text-lg md:text-[22px] font-medium max-w-4xl mx-auto leading-relaxed md:leading-loose opacity-90 tracking-wide text-pretty whitespace-normal break-words [&_*]:whitespace-normal [&_*]:inline [&_p]:inline ${onFieldClick ? "pointer-events-auto cursor-pointer hover:text-blue-400 border border-transparent hover:border-blue-400 p-2 rounded transition-all" : ""}`}
                             onClick={(e) => { e.stopPropagation(); onFieldClick?.("hero.description"); }}
                         >
-                            {content?.description ? (
-                                <span dangerouslySetInnerHTML={{ 
-                                    __html: content.description
-                                        .replace(/&shy;|\u00AD|\u200B/gi, '')
-                                        .replace(/<br\s*\/?>/gi, ' ')
-                                        .replace(/(full)\s*-\s*(stack)/gi, '$1 $2')
-                                        .replace(/\s+-\s+/g, ' ')
-                                }} />
-                            ) : (
-                                <span>
-                                    I’m Jean, your digital design sidekick. <br className="hidden md:block" />
-                                    Got a crazy idea? Let’s bring it to life! I’m a full stack designer, <br className="hidden md:block" />
-                                    which means I can handle everything, whether it’s creating a fresh brand, designing a smooth website, or building something totally unique. No need to hire a bunch of people, <span className="font-semibold italic">&quot;I’m here to do it all.&quot;</span>
-                                </span>
-                            )}
+                            <span>
+                                I’m Jean, your digital design sidekick. <br className="hidden md:block" />
+                                Got a crazy idea? Let’s bring it to life! I’m a full stack designer, <br className="hidden md:block" />
+                                which means I can handle everything, whether it’s creating a fresh brand, designing a smooth website, or building something totally unique. No need to hire a bunch of people, <span className="font-semibold italic">&quot;I’m here to do it all.&quot;</span>
+                            </span>
                         </motion.p>
                     </motion.div>
 
