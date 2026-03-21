@@ -20,6 +20,13 @@ export const metadata: Metadata = {
   icons: {
     icon: '/assets/jrslogowhite (1).ico',
   },
+  openGraph: {
+    images: ['/assets/meta image.jpeg'],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ['/assets/meta image.jpeg'],
+  },
 };
 
 export default function RootLayout({
