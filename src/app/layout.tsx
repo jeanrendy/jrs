@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "JeanRendy | Portfolio",
-  description: "3D Creative Developer & Designer",
+  description: "Hybrid Designer",
   icons: {
-    icon: '/assets/jrslogowhite.svg',
+    icon: '/assets/jrslogowhite (1).ico',
   },
 };
 
