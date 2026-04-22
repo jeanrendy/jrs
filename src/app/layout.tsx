@@ -19,7 +19,11 @@ export const metadata: Metadata = {
   title: "JeanRendy | Portfolio",
   description: "Hybrid Designer",
   icons: {
-    icon: '/assets/jrslogowhite (1).ico',
+    icon: [
+      { url: '/assets/favicon.svg', type: 'image/svg+xml' },
+      { url: '/assets/jrslogowhite (1).ico', type: 'image/x-icon' }, // fallback for older browsers
+    ],
+    apple: '/assets/favicon.svg',
   },
   openGraph: {
     images: ['/assets/meta-image.jpeg'],
