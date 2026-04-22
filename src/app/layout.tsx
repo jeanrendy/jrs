@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   title: "JeanRendy | Portfolio",
   description: "Hybrid Designer",
   icons: {
-    icon: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/assets/favicon.ico',
+    apple: '/assets/favicon.ico',
   },
   openGraph: {
     images: ['/assets/meta-image.jpeg'],
