@@ -54,7 +54,15 @@ const sortExperiences = (exps: Experience[]) => {
     });
 };
 
-const sortedStaticExperiences = sortExperiences(STATIC_EXPERIENCES);
+// Companies explicitly excluded from the experience section
+const EXCLUDED_COMPANIES = ["forward ib"];
+
+const filterExcluded = (exps: Experience[]) =>
+    exps.filter(
+        (exp) => !EXCLUDED_COMPANIES.includes(exp.company.trim().toLowerCase())
+    );
+
+const sortedStaticExperiences = sortExperiences(filterExcluded(STATIC_EXPERIENCES));
 
 export function AboutExperience() {
     const lenis = useLenis();
@@ -79,9 +87,26 @@ export function AboutExperience() {
                         data.push({ ...doc.data(), id: doc.id } as Experience);
                     });
 
-                    // Optional: Sort by start date if not ordered?
-                    // Expected to sort locally using the date strings regardless of DB order
-                    const sortedFetchedData = sortExperiences(data);
+                    // Remove explicitly excluded companies (e.g. entries deleted from static but still in Firebase)
+                    const filteredData = filterExcluded(data);
+
+                    // Deduplicate: merge fetched + static, preferring fetched entries.
+                    // Normalize key aggressively (strip punctuation, lowercase) and include
+                    // startDate so that same-company/same-title but different-date roles
+                    // are kept, while true duplicates (same role, same company, same start)
+                    // are collapsed regardless of location string differences.
+                    const normalize = (s: string) =>
+                        s.trim().toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ");
+                    const combined = [...filteredData, ...STATIC_EXPERIENCES];
+                    const seen = new Set<string>();
+                    const deduped = combined.filter((exp) => {
+                        const key = `${normalize(exp.title)}|${normalize(exp.company)}|${normalize(exp.startDate ?? "")}`;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
+
+                    const sortedFetchedData = sortExperiences(deduped);
 
                     // We'll re-set state.
                     setExperiences(sortedFetchedData as any);

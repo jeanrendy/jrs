@@ -184,23 +184,6 @@ export const STATIC_EXPERIENCES: Experience[] = [
         skills: ["Cinema 4D", "Visual Direction", "3D Modeling", "Responsive Web Design", "Social Media", "3D Visualization", "Design", "Corporate Identity", "Creative Direction", "Video Editing", "Adobe Photoshop", "Product Photography", "Video Production", "Team Leadership"],
     },
     {
-        id: "11",
-        title: "Graphic Designer - Photographer",
-        company: "FORWARD IB",
-        location: "Greater Jakarta Area, Indonesia",
-        locationType: "Hybrid",
-        startDate: "Jan 2013",
-        endDate: "Feb 2014",
-        duration: "1 yr 2 mos",
-        description: [
-            "Creative agency: Event Organizing - Event Planner",
-            "Yearbook Production - TVC",
-            "Branding Company services",
-            "Photography and visual direction",
-        ],
-        skills: ["Visual Direction", "Design", "Corporate Identity", "Video Editing", "Adobe Photoshop", "Product Photography", "Video Production"],
-    },
-    {
         id: "12",
         title: "Head Creative",
         company: "SMART MEDIA",
